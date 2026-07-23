@@ -25,7 +25,7 @@ export default function Dashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         // Jika belum ada sesi / belum login, lempar ke halaman login
-        router.push('/login');
+        window.location.href = '/login';
       }
     };
 
