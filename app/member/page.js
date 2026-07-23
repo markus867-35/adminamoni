@@ -13,7 +13,7 @@ export default function MemberPage() {
         <div>
           <h1 className="text-2xl font-normal text-slate-800 dark:text-white">Member</h1>
           <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            <Link href="/" className="hover:underline text-blue-600 dark:text-blue-400">Dashboard</Link>
+            <Link href="/admin" className="hover:underline text-blue-600 dark:text-blue-400">Dashboard</Link>
             <span>/</span>
             <span>Member</span>
           </div>

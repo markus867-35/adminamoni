@@ -51,7 +51,7 @@ export default function Sidebar({ isOpen }) {
         <nav className="py-2 space-y-1 text-sm font-medium">
           
           {/* Dashboard */}
-          <Link href="/" className="flex items-center px-6 py-3 hover:bg-[#222d3d] transition text-white">
+          <Link href="/admin" className="flex items-center px-6 py-3 hover:bg-[#222d3d] transition text-white">
             <LayoutDashboard className="w-4 h-4 mr-3 text-slate-400" />
             Dashboard
           </Link>
