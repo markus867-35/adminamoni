@@ -1,6 +1,9 @@
 'use client';
 
-import React from 'react';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { 
   ArrowDownToLine, 
@@ -16,6 +19,18 @@ import {
 } from 'lucide-react';
 
 export default function Dashboard() {
+  const router = useRouter();
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Jika belum ada sesi / belum login, lempar ke halaman login
+        router.push('/login');
+      }
+    };
+
+    checkUser();
+  }, [router]);
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
