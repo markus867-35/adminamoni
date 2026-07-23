@@ -1,7 +1,7 @@
+TypeScript
 'use client';
 
-
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
@@ -20,17 +20,28 @@ import {
 
 export default function Dashboard() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // Jika belum ada sesi / belum login, lempar ke halaman login
-        window.location.href = '/login';
+        router.push('/login');
+      } else {
+        setLoading(false);
       }
     };
 
     checkUser();
   }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#f4f6f9] dark:bg-[#0b0f19] text-slate-500">
+        Memuat...
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
