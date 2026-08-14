@@ -127,12 +127,12 @@ const handleDelete = async (id: number | string) => {
       // Refresh data setelah berhasil dihapus
       fetchData(inputFilter, currentPage);
 
-    } catch (error) {
+} catch (error: any) {
       console.error('Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Gagal',
-        text: 'Gagal menghapus data: ' + error.message,
+        text: 'Gagal menghapus data: ' + (error as Error).message,
         confirmButtonColor: '#ef4444',
       });
     }
