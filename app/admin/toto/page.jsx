@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminTotoPage() {
@@ -44,11 +45,16 @@ export default function AdminTotoPage() {
     fetchToto();
   }, []);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!form.name || form.name.trim() === "") {
-      alert("Nama pasaran wajib diisi!");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan',
+        text: 'Nama pasaran wajib diisi!',
+        confirmButtonColor: '#facc15', // Warna kuning senada dengan tema Anda
+      });
       return;
     }
 
@@ -68,21 +74,50 @@ export default function AdminTotoPage() {
 
       if (error) throw error;
 
-      alert("Pasaran toto berhasil ditambahkan!");
+      // SweetAlert untuk Berhasil
+// SweetAlert untuk Berhasil (Dengan tombol OK)
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Pasaran toto berhasil ditambahkan!',
+        confirmButtonColor: '#10b981',
+        confirmButtonText: 'OK', // Memunculkan kembali teks tombol OK
+        showConfirmButton: true  // Memastikan tombol OK ditampilkan
+      });
 
       setForm({ name: '', icon: '', bg_image: '', game_url: '' });
       await fetchToto();
 
     } catch (error) {
       console.error('Error:', error.message);
-      alert('Gagal menyimpan pasaran toto: ' + error.message);
+      
+      // SweetAlert untuk Error
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal menyimpan pasaran toto: ' + error.message,
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus pasaran toto ini?')) return;
+const handleDelete = async (id) => {
+    // Konfirmasi sebelum menghapus menggunakan SweetAlert2
+    const result = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: 'Data pasaran toto ini akan dihapus permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444', // Warna merah untuk tombol hapus
+      cancelButtonColor: '#6b7280',  // Warna abu-abu untuk tombol batal
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
+
+    // Jika pengguna menekan tombol Batal
+    if (!result.isConfirmed) return;
 
     try {
       const { error } = await supabase
@@ -92,15 +127,33 @@ export default function AdminTotoPage() {
 
       if (error) throw error;
 
-      alert('Pasaran toto berhasil dihapus!');
+      // SweetAlert Berhasil Hapus (Dengan tombol OK)
+      Swal.fire({
+        icon: 'success',
+        title: 'Terhapus!',
+        text: 'Pasaran toto berhasil dihapus!',
+        confirmButtonColor: '#10b981',
+        confirmButtonText: 'OK',
+        showConfirmButton: true
+      });
+
       fetchToto();
     } catch (error) {
       console.error('Error:', error.message);
-      alert('Gagal menghapus pasaran toto: ' + error.message);
+      
+      // SweetAlert Error Hapus
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal menghapus pasaran toto: ' + error.message,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'OK',
+        showConfirmButton: true
+      });
     }
   };
 
-  const handleEditClick = (toto) => {
+const handleEditClick = (toto) => {
     setEditingToto(toto.id);
     setFormEdit({
       name: toto.name || '',
@@ -112,20 +165,52 @@ export default function AdminTotoPage() {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+
+    if (!formEdit.name || formEdit.name.trim() === "") {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan',
+        text: 'Nama pasaran wajib diisi!',
+        confirmButtonColor: '#facc15',
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('toto_games')
-        .update(formEdit)
+        .update({
+          name: formEdit.name.trim(),
+          icon: formEdit.icon || null,
+          bg_image: formEdit.bg_image || null,
+          game_url: formEdit.game_url || null
+        })
         .eq('id', editingToto);
 
       if (error) throw error;
 
-      alert('Pasaran toto berhasil diperbarui!');
+      // SweetAlert Berhasil Update (Dengan tombol OK dan timer pilihan)
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Pasaran toto berhasil diperbarui!',
+        confirmButtonColor: '#10b981',
+        confirmButtonText: 'OK',
+        showConfirmButton: true
+      });
+
       setEditingToto(null);
       fetchToto();
     } catch (error) {
       console.error('Error:', error.message);
-      alert('Gagal mengupdate pasaran toto: ' + error.message);
+      
+      // SweetAlert Error Update
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal mengupdate pasaran toto: ' + error.message,
+        confirmButtonColor: '#ef4444',
+      });
     }
   };
 
@@ -241,77 +326,83 @@ export default function AdminTotoPage() {
   </div>
 </div>
 </div>
-      {/* Tabel Daftar Toto */}
+{/* Tabel Daftar Toto */}
       <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-purple-300' : 'text-purple-800'}`}>Daftar Pasaran Toto Aktif</h2>
+      
+      {/* Kontainer Utama */}
       <div className={`rounded-2xl border overflow-hidden shadow-xl max-w-6xl transition-colors duration-300 ${isDarkMode ? 'bg-[#1a0033] border-purple-800' : 'bg-white border-gray-300'}`}>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className={`border-b text-xs uppercase tracking-wider ${isDarkMode ? 'bg-purple-950/60 border-purple-800 text-gray-300' : 'bg-gray-200 border-gray-300 text-gray-700'}`}>
-              <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Logo</th>
-              <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Pasaran</th>
-              <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Background Card</th>
-              <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Link Game</th>
-              <th className="p-4 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className={`divide-y text-sm ${isDarkMode ? 'divide-purple-900/40' : 'divide-gray-200'}`}>
-            {totoList.length === 0 ? (
-              <tr>
-                <td colSpan="5" className={`p-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Belum ada pasaran toto yang ditambahkan.</td>
+        
+        {/* Tambahkan div ini agar tabel bisa digeser/responsif saat di-zoom */}
+        <div className="w-full overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[700px]">
+            <thead>
+              <tr className={`border-b text-xs uppercase tracking-wider whitespace-nowrap ${isDarkMode ? 'bg-purple-950/60 border-purple-800 text-gray-300' : 'bg-gray-200 border-gray-300 text-gray-700'}`}>
+                <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Logo</th>
+                <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Pasaran</th>
+                <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Background Card</th>
+                <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Link Game</th>
+                <th className="p-4 text-center">Aksi</th>
               </tr>
-            ) : (
-              totoList.map((toto) => (
-                <tr key={toto.id} className={`transition ${isDarkMode ? 'hover:bg-purple-900/20' : 'hover:bg-gray-50'}`}>
-                  <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
-                    {toto.icon ? <img src={toto.icon} alt="" className="w-8 h-8 object-contain rounded" /> : '—'}
-                  </td>
-                  <td className={`p-4 font-bold border-r ${isDarkMode ? 'text-white border-purple-900/40' : 'text-gray-900 border-gray-200'}`}>{toto.name}</td>
-                  
-                  {/* Kolom Background Card (Thumbnail yang bisa diklik untuk memunculkan popup modal) */}
-                  <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
-                    {toto.bg_image ? (
-                      <div 
-                        onClick={() => setPreviewImage(toto.bg_image)}
-                        className="w-24 h-12 rounded-lg overflow-hidden border border-purple-500/40 bg-black/50 flex items-center justify-center shadow cursor-pointer hover:scale-105 transition-transform"
-                        title="Klik untuk memperbesar gambar"
-                      >
-                        <img 
-                          src={toto.bg_image} 
-                          alt="BG" 
-                          className="w-full h-full object-cover pointer-events-none"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>—</span>
-                    )}
-                  </td>
-
-                  <td className={`p-4 truncate max-w-xs border-r ${isDarkMode ? 'text-gray-300 border-purple-900/40' : 'text-gray-600 border-gray-200'}`}>{toto.game_url || '—'}</td>
-                  
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleEditClick(toto)}
-                        className="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(toto.id)}
-                        className="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
+            </thead>
+            <tbody className={`divide-y text-sm ${isDarkMode ? 'divide-purple-900/40' : 'divide-gray-200'}`}>
+              {totoList.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className={`p-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Belum ada pasaran toto yang ditambahkan.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                totoList.map((toto) => (
+                  <tr key={toto.id} className={`transition whitespace-nowrap ${isDarkMode ? 'hover:bg-purple-900/20' : 'hover:bg-gray-50'}`}>
+                    <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
+                      {toto.icon ? <img src={toto.icon} alt="" className="w-8 h-8 object-contain rounded" /> : '—'}
+                    </td>
+                    <td className={`p-4 font-bold border-r ${isDarkMode ? 'text-white border-purple-900/40' : 'text-gray-900 border-gray-200'}`}>{toto.name}</td>
+                    
+                    {/* Kolom Background Card (Thumbnail yang bisa diklik untuk memunculkan popup modal) */}
+                    <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
+                      {toto.bg_image ? (
+                        <div 
+                          onClick={() => setPreviewImage(toto.bg_image)}
+                          className="w-24 h-12 rounded-lg overflow-hidden border border-purple-500/40 bg-black/50 flex items-center justify-center shadow cursor-pointer hover:scale-105 transition-transform"
+                          title="Klik untuk memperbesar gambar"
+                        >
+                          <img 
+                            src={toto.bg_image} 
+                            alt="BG" 
+                            className="w-full h-full object-cover pointer-events-none"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <span className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>—</span>
+                      )}
+                    </td>
+
+                    <td className={`p-4 truncate max-w-xs border-r ${isDarkMode ? 'text-gray-300 border-purple-900/40' : 'text-gray-600 border-gray-200'}`}>{toto.game_url || '—'}</td>
+                    
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button 
+                          onClick={() => handleEditClick(toto)}
+                          className="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer whitespace-nowrap"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(toto.id)}
+                          className="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer whitespace-nowrap"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
 {/* Modal Popup Preview Gambar (Lightbox Bersih & Terpusat Penuh) */}

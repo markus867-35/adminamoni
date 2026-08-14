@@ -185,87 +185,89 @@ export default function TogelResultPage() {
       </div>
 
       {/* TABEL RIWAYAT TOGEL RESULT */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex justify-between items-center">
-          <span className="font-bold text-slate-700 dark:text-slate-200 text-xs tracking-wider flex items-center gap-2">
-            <svg className="svg-inline--fa fa-table w-4 h-4 text-slate-500 dark:text-slate-400" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="table" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <path fill="currentColor" d="M448 32C483.3 32 512 60.65 512 96V416C512 451.3 483.3 480 448 480H64C28.65 480 0 451.3 0 416V96C0 60.65 28.65 32 64 32H448zM224 256V160H64V256H224zM64 320V416H224V320H64zM288 416H448V320H288V416zM448 256V160H288V256H448z"></path>
-            </svg>
-            RIWAYAT TOGEL RESULT
-          </span>
-          <Link href="/admin/togel/togelresult/tambahresult">
-            <button 
-              type="button"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow-sm cursor-pointer"
-            >
-              + TAMBAH RESULT
-            </button>
-          </Link>
-        </div>
+<div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm overflow-hidden w-full">
+  <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex flex-wrap justify-between items-center gap-2">
+    <span className="font-bold text-slate-700 dark:text-slate-200 text-xs tracking-wider flex items-center gap-2">
+      <svg className="svg-inline--fa fa-table w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="table" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <path fill="currentColor" d="M448 32C483.3 32 512 60.65 512 96V416C512 451.3 483.3 480 448 480H64C28.65 480 0 451.3 0 416V96C0 60.65 28.65 32 64 32H448zM224 256V160H64V256H224zM64 320V416H224V320H64zM288 416H448V320H288V416zM448 256V160H288V256H448z"></path>
+      </svg>
+      RIWAYAT TOGEL RESULT
+    </span>
+    <Link href="/admin/togel/togelresult/tambahresult">
+      <button 
+        type="button"
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap"
+      >
+        + TAMBAH RESULT
+      </button>
+    </Link>
+  </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 text-xs font-semibold">
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">NO.</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">PASARAN</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">PERIODE</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">TANGGAL</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400">RESULT</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">STATUS</th>
-                <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">WAKTU DIBUAT</th>
-                <th className="px-4 py-3 text-center">ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-500 italic text-sm">
-                    Memuat data...
-                  </td>
-                </tr>
-              ) : tableData.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-12 text-slate-400 italic text-sm">
-                    Belum ada data riwayat yang ditemukan.
-                  </td>
-                </tr>
-              ) : (
-                tableData.map((item, index) => (
-                  <tr key={item.id || index} className="border-b border-slate-200 dark:border-slate-700 text-sm hover:bg-slate-50 dark:hover:bg-slate-750">
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">
-                      {(currentPage - 1) * rowsPerPage + index + 1}
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 font-medium">{item.pasaran}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.periode || '-'}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.tanggal || '-'}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 font-bold text-blue-600 dark:text-blue-400">{item.result}</td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                        <span className="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px]">
-                          ✓
-                        </span>
-                        {item.status || 'Sudah Dicairkan'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.waktu_dibuat || new Date(item.created_at).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-center">
-  <button
-    onClick={() => handleDelete(item.id)}
-    className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-medium transition shadow-sm cursor-pointer inline-flex items-center gap-1"
-  >
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-    </svg>
-    Delete
-  </button>
-</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+  {/* Kontainer Scroll Horisontal Responsif */}
+  <div className="w-full overflow-x-auto min-w-full">
+    <table className="w-full text-left border-collapse min-w-[700px]">
+      <thead>
+        <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 text-xs font-semibold whitespace-nowrap">
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">NO.</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">PASARAN</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">PERIODE</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">TANGGAL</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400">RESULT</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">STATUS</th>
+          <th className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">WAKTU DIBUAT</th>
+          <th className="px-4 py-3 text-center">ACTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {loading ? (
+          <tr>
+            <td colSpan={8} className="text-center py-8 text-slate-500 italic text-sm">
+              Memuat data...
+            </td>
+          </tr>
+        ) : tableData.length === 0 ? (
+          <tr>
+            <td colSpan={8} className="text-center py-12 text-slate-400 italic text-sm">
+              Belum ada data riwayat yang ditemukan.
+            </td>
+          </tr>
+        ) : (
+          tableData.map((item, index) => (
+            <tr key={item.id || index} className="border-b border-slate-200 dark:border-slate-700 text-sm hover:bg-slate-50 dark:hover:bg-slate-750 whitespace-nowrap">
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">
+                {(currentPage - 1) * rowsPerPage + index + 1}
+              </td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 font-medium">{item.pasaran}</td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.periode || '-'}</td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.tanggal || '-'}</td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700 font-bold text-blue-600 dark:text-blue-400">{item.result}</td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 whitespace-nowrap">
+                  <span className="w-4 h-4 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] shrink-0">
+                    ✓
+                  </span>
+                  {item.status || 'Sudah Dicairkan'}
+                </span>
+              </td>
+              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.waktu_dibuat || new Date(item.created_at).toLocaleString()}</td>
+              <td className="px-4 py-3 text-center">
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-medium transition shadow-sm cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                >
+                  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
+
 
         {/* PAGINATION FOOTER */}
         <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
