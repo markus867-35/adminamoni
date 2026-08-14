@@ -15,6 +15,7 @@ export default function TogelResultPage() {
   const [listPasaran, setListPasaran] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<any>(null);
   
   // State untuk Pagination
   const [currentPage, setCurrentPage] = useState(1);
