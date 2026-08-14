@@ -23,10 +23,9 @@ export default function TogelResultPage() {
 
   const dropdownRef = useRef(null);
 
-  // Klik di luar dropdown untuk menutup
-  useEffect(() => {
+useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      const dropdownRef = useRef<HTMLDivElement | null>(null);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
