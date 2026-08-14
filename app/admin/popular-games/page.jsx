@@ -211,63 +211,67 @@ export default function AdminPopularGamesPage() {
   </div>
 
 </div>
-      {/* Tabel Daftar Game */}
+{/* Tabel Daftar Game */}
 <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-purple-300' : 'text-purple-800'}`}>Daftar Game Populer Saat Ini</h2>
 <div className={`rounded-2xl border overflow-hidden shadow-xl max-w-5xl transition-colors duration-300 ${isDarkMode ? 'bg-[#1a0033] border-purple-800' : 'bg-white border-gray-300'}`}>
-  <table className="w-full text-left border-collapse">
-    <thead>
-      <tr className={`border-b text-xs uppercase tracking-wider ${isDarkMode ? 'bg-purple-950/60 border-purple-800 text-gray-300' : 'bg-gray-200 border-gray-300 text-gray-700'}`}>
-        <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Gambar</th>
-        <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Judul Game</th>
-        <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Provider</th>
-        <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Link URL</th>
-        <th className="p-4 text-center">Aksi</th>
-      </tr>
-    </thead>
-    <tbody className={`divide-y text-sm ${isDarkMode ? 'divide-purple-900/40' : 'divide-gray-200'}`}>
-      {games.length === 0 ? (
-        <tr>
-          <td colSpan="5" className={`p-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Belum ada game populer yang ditambahkan.</td>
+  
+  {/* Kontainer agar responsif dan aman saat di-zoom */}
+  <div className="w-full overflow-x-auto">
+    <table className="w-full text-left border-collapse min-w-[700px]">
+      <thead>
+        <tr className={`border-b text-xs uppercase tracking-wider whitespace-nowrap ${isDarkMode ? 'bg-purple-950/60 border-purple-800 text-gray-300' : 'bg-gray-200 border-gray-300 text-gray-700'}`}>
+          <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Gambar</th>
+          <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Judul Game</th>
+          <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Provider</th>
+          <th className={`p-4 border-r ${isDarkMode ? 'border-purple-900/60' : 'border-gray-300'}`}>Link URL</th>
+          <th className="p-4 text-center">Aksi</th>
         </tr>
-      ) : (
-        games.map((game) => (
-          <tr key={game.id} className={`transition ${isDarkMode ? 'hover:bg-purple-900/20' : 'hover:bg-gray-50'}`}>
-            <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
-              <img 
-                src={game.image} 
-                alt={game.title} 
-                className="w-12 h-12 object-cover rounded-lg border border-purple-700 cursor-pointer hover:opacity-80 hover:scale-105 transition-all"
-                onClick={() => setPreviewImage(game.image)}
-                title="Klik untuk memperbesar gambar"
-              />
-            </td>
-            <td className={`p-4 font-bold border-r ${isDarkMode ? 'text-white border-purple-900/40' : 'text-gray-900 border-gray-200'}`}>{game.title}</td>
-            <td className={`p-4 uppercase border-r ${isDarkMode ? 'text-gray-300 border-purple-900/40' : 'text-gray-600 border-gray-200'}`}>{game.provider}</td>
-            <td className={`p-4 truncate max-w-xs border-r ${isDarkMode ? 'text-yellow-400 border-purple-900/40' : 'text-blue-600 border-gray-200'}`}>{game.game_url}</td>
-            <td className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2">
-                {/* Tombol Edit */}
-                <button 
-                  onClick={() => handleEditClick(game)}
-                  className="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer"
-                >
-                  Edit
-                </button>
-                
-                {/* Tombol Hapus */}
-                <button 
-                  onClick={() => handleDelete(game.id)}
-                  className="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer"
-                >
-                  Hapus
-                </button>
-              </div>
-            </td>
+      </thead>
+      <tbody className={`divide-y text-sm ${isDarkMode ? 'divide-purple-900/40' : 'divide-gray-200'}`}>
+        {games.length === 0 ? (
+          <tr>
+            <td colSpan="5" className={`p-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Belum ada game populer yang ditambahkan.</td>
           </tr>
-        ))
-      )}
-    </tbody>
-  </table>
+        ) : (
+          games.map((game) => (
+            <tr key={game.id} className={`transition whitespace-nowrap ${isDarkMode ? 'hover:bg-purple-900/20' : 'hover:bg-gray-50'}`}>
+              <td className={`p-4 border-r ${isDarkMode ? 'border-purple-900/40' : 'border-gray-200'}`}>
+                <img 
+                  src={game.image} 
+                  alt={game.title} 
+                  className="w-12 h-12 object-cover rounded-lg border border-purple-700 cursor-pointer hover:opacity-80 hover:scale-105 transition-all"
+                  onClick={() => setPreviewImage(game.image)}
+                  title="Klik untuk memperbesar gambar"
+                />
+              </td>
+              <td className={`p-4 font-bold border-r ${isDarkMode ? 'text-white border-purple-900/40' : 'text-gray-900 border-gray-200'}`}>{game.title}</td>
+              <td className={`p-4 uppercase border-r ${isDarkMode ? 'text-gray-300 border-purple-900/40' : 'text-gray-600 border-gray-200'}`}>{game.provider}</td>
+              <td className={`p-4 truncate max-w-xs border-r ${isDarkMode ? 'text-yellow-400 border-purple-900/40' : 'text-blue-600 border-gray-200'}`}>{game.game_url}</td>
+              <td className="p-4 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  {/* Tombol Edit */}
+                  <button 
+                    onClick={() => handleEditClick(game)}
+                    className="bg-blue-600/80 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer whitespace-nowrap"
+                  >
+                    Edit
+                  </button>
+                  
+                  {/* Tombol Hapus */}
+                  <button 
+                    onClick={() => handleDelete(game.id)}
+                    className="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow cursor-pointer whitespace-nowrap"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  </div>
 </div>
      
       {/* Modal Popup Preview Gambar (Lightbox Bersih & Terpusat Penuh) */}
