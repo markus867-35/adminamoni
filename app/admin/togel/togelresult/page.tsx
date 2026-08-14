@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import Swal from 'sweetalert2';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -92,22 +93,50 @@ export default function TogelResultPage() {
     item && item.toLowerCase().includes(inputFilter.toLowerCase())
   );
 
-  const handleDelete = async (id: number | string) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
+const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: 'Data ini akan dihapus permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+    });
 
-    const { error } = await supabase
-      .from('togel_results')
-      .delete()
-      .eq('id', id);
+    if (!result.isConfirmed) return;
 
-    if (error) {
-      alert('Gagal menghapus data: ' + error.message);
-    } else {
+    try {
+      const { error } = await supabase
+        .from('togel_results')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Terhapus!',
+        text: 'Data berhasil dihapus.',
+        confirmButtonColor: '#10b981',
+      });
+
       // Refresh data setelah berhasil dihapus
       fetchData(inputFilter, currentPage);
+
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal menghapus data: ' + error.message,
+        confirmButtonColor: '#ef4444',
+      });
     }
   };
-
   return (
     <div className="p-6 bg-slate-100 dark:bg-slate-900 min-h-screen space-y-6">
       

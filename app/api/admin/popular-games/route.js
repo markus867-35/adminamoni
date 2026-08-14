@@ -31,6 +31,31 @@ export async function POST(request) {
   }
 }
 
+// Tambahkan fungsi PUT ini agar method PUT diizinkan
+export async function PUT(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID tidak ditemukan pada parameter URL' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { title, provider, image, game_url } = body;
+
+    const { data, error } = await supabase
+      .from('popular_games')
+      .update({ title, provider, image, game_url })
+      .eq('id', id);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, message: 'Data berhasil diperbarui', data });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(request) {
   try {
     const { searchParams } = new URL(request.url);

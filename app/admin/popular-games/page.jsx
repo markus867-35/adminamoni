@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 export default function AdminPopularGamesPage() {
   const [games, setGames] = useState([]);
@@ -37,15 +38,24 @@ export default function AdminPopularGamesPage() {
     fetchGames();
   }, []);
 
+// Fungsi untuk menambah game baru via API Route dengan SweetAlert2
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validasi form menggunakan Swal jika ada kolom yang kosong
     if (!form.title || !form.provider || !form.image || !form.game_url) {
-      alert('Semua kolom (Judul, Provider, Gambar, dan URL Game) harus diisi!');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan',
+        text: 'Semua kolom (Judul, Provider, Gambar, dan URL Game) harus diisi!',
+        confirmButtonColor: '#facc15',
+      });
       return;
     }
 
-    setLoading(true);
     try {
+      setLoading(true);
+
       const res = await fetch('/api/admin/popular-games', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,21 +63,47 @@ export default function AdminPopularGamesPage() {
       });
 
       if (res.ok) {
-        alert('Game populer berhasil ditambahkan!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Game populer berhasil ditambahkan!',
+          confirmButtonColor: '#10b981',
+        });
+        
         setForm({ title: '', provider: '', image: '', game_url: '' });
-        fetchGames();
+        fetchGames(); // Refresh tabel data
       } else {
-        alert('Gagal menambahkan game.');
+        throw new Error('Gagal menambahkan game.');
       }
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Terjadi kesalahan saat menyimpan data.',
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setLoading(false);
     }
   };
 
+
+
+// Fungsi untuk menghapus game via API Route dengan SweetAlert2
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus game ini dari daftar populer?')) return;
+    const result = await Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: 'Game ini akan dihapus dari daftar populer!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       const res = await fetch(`/api/admin/popular-games?id=${id}`, {
@@ -75,17 +111,28 @@ export default function AdminPopularGamesPage() {
       });
 
       if (res.ok) {
-        alert('Game berhasil dihapus!');
+        Swal.fire({
+          icon: 'success',
+          title: 'Terhapus!',
+          text: 'Game berhasil dihapus.',
+          confirmButtonColor: '#10b981',
+        });
         fetchGames();
       } else {
-        alert('Gagal menghapus game.');
+        throw new Error('Gagal menghapus game.');
       }
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Terjadi kesalahan saat menghapus data.',
+        confirmButtonColor: '#ef4444',
+      });
     }
   };
 
-  // Fungsi saat tombol Edit diklik
+  // Fungsi saat tombol Edit diklik (Tetap seperti semula karena hanya mengatur state form)
   const handleEditClick = (game) => {
     setEditingGame(game.id);
     setFormEdit({
@@ -96,25 +143,61 @@ export default function AdminPopularGamesPage() {
     });
   };
 
-  // Fungsi untuk menyimpan perubahan Update ke Supabase via API Route
-  const handleUpdate = async (e) => {
+
+
+const handleUpdate = async (e) => {
     e.preventDefault();
+
+    // Validasi sederhana
+    if (!formEdit.title) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Judul game tidak boleh kosong!',
+        confirmButtonColor: '#facc15',
+      });
+      return;
+    }
+
     try {
-      const res = await fetch('/api/admin/popular-games', {
-        method: 'PUT', // Menggunakan metode PUT untuk update
+      // Tampilkan indikator loading
+      Swal.fire({
+        title: 'Sedang memperbarui...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      const res = await fetch(`/api/admin/popular-games?id=${editingGame}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: editingGame, ...formEdit }),
       });
 
       if (res.ok) {
-        alert('Game berhasil diperbarui!');
+        // Notifikasi sukses
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: 'Game berhasil diperbarui.',
+          confirmButtonColor: '#10b981',
+        });
+        
         setEditingGame(null);
-        fetchGames();
+        fetchGames(); // Refresh tabel
       } else {
-        alert('Gagal mengupdate game.');
+        // Notifikasi jika response tidak ok (4xx atau 5xx)
+        throw new Error('Gagal mengupdate game.');
       }
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Terjadi Kesalahan',
+        text: 'Gagal menghubungi server.',
+        confirmButtonColor: '#ef4444',
+      });
     }
   };
 
