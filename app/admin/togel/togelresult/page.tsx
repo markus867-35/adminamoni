@@ -36,7 +36,7 @@ export default function TogelResultPage() {
     fetchData(inputFilter, currentPage);
   }, [currentPage]);
 
-  const fetchData = async (searchQuery = '', page = 1) => {
+ const fetchData = async (searchQuery = '', page = 1) => {
     setLoading(true);
 
     const startIndex = (page - 1) * rowsPerPage;
@@ -49,7 +49,13 @@ export default function TogelResultPage() {
     const { count } = await countQuery;
     setTotalData(count || 0);
 
-    let query = supabase.from('togel_results').select('*').range(startIndex, endIndex);
+    // Tambahkan .order('created_at', { ascending: false }) di sini
+    // (Jika tabel Anda tidak memiliki kolom created_at, ganti 'created_at' dengan 'id')
+    let query = supabase
+      .from('togel_results')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(startIndex, endIndex);
 
     if (searchQuery) {
       query = query.ilike('pasaran', `%${searchQuery}%`);
@@ -66,7 +72,6 @@ export default function TogelResultPage() {
     }
     setLoading(false);
   };
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setIsOpen(false);
@@ -86,6 +91,22 @@ export default function TogelResultPage() {
   const filteredPasaran = listPasaran.filter(item => 
     item && item.toLowerCase().includes(inputFilter.toLowerCase())
   );
+
+  const handleDelete = async (id: number | string) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
+
+    const { error } = await supabase
+      .from('togel_results')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Gagal menghapus data: ' + error.message);
+    } else {
+      // Refresh data setelah berhasil dihapus
+      fetchData(inputFilter, currentPage);
+    }
+  };
 
   return (
     <div className="p-6 bg-slate-100 dark:bg-slate-900 min-h-screen space-y-6">
@@ -228,7 +249,17 @@ export default function TogelResultPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-700">{item.waktu_dibuat || new Date(item.created_at).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-center">-</td>
+                    <td className="px-4 py-3 text-center">
+  <button
+    onClick={() => handleDelete(item.id)}
+    className="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-medium transition shadow-sm cursor-pointer inline-flex items-center gap-1"
+  >
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+    </svg>
+    Delete
+  </button>
+</td>
                   </tr>
                 ))
               )}
