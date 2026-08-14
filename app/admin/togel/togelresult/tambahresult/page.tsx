@@ -14,7 +14,7 @@ export default function TambahTogelResultPage() {
   const [tanggal, setTanggal] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pasaran || !resultPrize || !tanggal) {
       alert('Semua field harus diisi!');
@@ -23,14 +23,13 @@ export default function TambahTogelResultPage() {
 
     setLoading(true);
     
-    // Diubah target tabelnya ke 'togel_results'
     const { error } = await supabase
       .from('togel_results') 
       .insert([
         { 
-          pasaran: pasaran,       // Sesuai nama kolom di tabel
-          result: resultPrize,    // Sesuai nama kolom di tabel
-          tanggal: tanggal        // Sesuai nama kolom di tabel
+          pasaran: pasaran,       
+          result: resultPrize,    
+          tanggal: tanggal        
         }
       ]);
 
@@ -40,7 +39,6 @@ export default function TambahTogelResultPage() {
       alert('Gagal menyimpan data: ' + error.message);
     } else {
       alert('Berhasil menyimpan result!');
-      // Reset form
       setPasaran('');
       setResultPrize('');
       setTanggal('');
