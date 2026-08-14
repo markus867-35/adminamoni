@@ -93,7 +93,7 @@ export default function TogelResultPage() {
     item && item.toLowerCase().includes(inputFilter.toLowerCase())
   );
 
-const handleDelete = async (id) => {
+const handleDelete = async (id: number | string) => {
     const result = await Swal.fire({
       title: 'Apakah Anda yakin?',
       text: 'Data ini akan dihapus permanen!',
