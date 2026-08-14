@@ -11,7 +11,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function AdminPage() {
   const router = useRouter();
-  const [markets, setMarkets] = useState([]);
+  const [markets, setMarkets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -49,7 +49,7 @@ export default function AdminPage() {
 
       if (error) throw error;
       setMarkets(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Gagal memuat pasaran:', err.message);
       Swal.fire('Error', 'Gagal memuat data dari database.', 'error');
     } finally {
@@ -57,7 +57,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleUpdateUrl = async (id, newUrl, marketName) => {
+  const handleUpdateUrl = async (id: any, newUrl: string, marketName: string) => {
     try {
       const { error } = await supabase
         .from('markets')
@@ -73,7 +73,7 @@ export default function AdminPage() {
         timer: 1500,
         showConfirmButton: false
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Gagal memperbarui:', err.message);
       Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan ke Supabase.', 'error');
     }
@@ -133,8 +133,10 @@ export default function AdminPage() {
                     />
                     <button
                       onClick={() => {
-                        const inputElement = document.getElementById(`url-input-${market.id}`);
-                        handleUpdateUrl(market.id, inputElement.value, market.name);
+                        const inputElement = document.getElementById(`url-input-${market.id}`) as HTMLInputElement;
+                        if (inputElement) {
+                          handleUpdateUrl(market.id, inputElement.value, market.name);
+                        }
                       }}
                       className="bg-yellow-400 hover:bg-yellow-300 text-black font-extrabold px-4 py-2 rounded text-xs shadow transition cursor-pointer whitespace-nowrap"
                     >
