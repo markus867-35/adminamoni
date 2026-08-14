@@ -216,33 +216,31 @@ export default function AdminTotoPage() {
           </div>
         </form>
 
-        {/* Kotak Preview Gambar */}
-        <div className="border-4 border-yellow-400 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[420px] bg-[#1a0033]/40 shadow-2xl">
-          <h3 className="text-yellow-400 font-bold mb-4 uppercase tracking-widest text-xs">Live Preview Background Card</h3>
-          
-          {form.bg_image ? (
-            <div className="relative w-full h-[520px] rounded-xl overflow-hidden border border-purple-800 shadow-inner flex items-center justify-center bg-black/60">
-              <img 
-                src={form.bg_image} 
-                alt="Preview Background" 
-                className="w-full h-full object-contain p-2 cursor-pointer"
-                onClick={() => setPreviewImage(form.bg_image)}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          ) : (
-            <div className="text-center text-gray-400 text-sm space-y-2 p-6">
-              <span className="text-4xl">🖼️</span>
-              <p className="font-medium">Belum ada URL gambar yang dimasukkan.</p>
-              <p className="text-xs text-gray-500">Silakan ketik atau tempel (*paste*) link gambar pada kolom <strong className="text-yellow-400">URL Background Card</strong> di sebelah kiri untuk melihat hasilnya secara langsung di sini.</p>
-            </div>
-          )}
-        </div>
-
+{/* Kotak Preview Gambar */}
+<div className="border-4 border-yellow-400 rounded-2xl p-6 flex flex-col items-center justify-center bg-transparant shadow-2xl h-full">
+  <h3 className="text-yellow-400 font-bold mb-4 uppercase tracking-widest text-xs">Live Preview Background Card</h3>
+  
+  {/* Kunci pembungkus gambar agar tidak bisa melebar/menyempit */}
+  <div className="relative w-full flex-grow h-0 min-h-[350px] rounded-xl overflow-hidden   shadow-inner flex items-center justify-center bg-transparant">
+    {form.bg_image ? (
+      <img 
+        src={form.bg_image} 
+        alt="Preview Background" 
+        /* object-contain menjaga rasio gambar agar tidak gepeng */
+        className="w-full h-full object-contain p-2 cursor-pointer"
+        onClick={() => setPreviewImage(form.bg_image)}
+        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+      />
+    ) : (
+      /* Placeholder dengan tinggi yang sama */
+      <div className="text-center text-gray-400 text-sm space-y-2 p-6 flex flex-col items-center justify-center h-full">
+        <span className="text-4xl">🖼️</span>
+        <p className="font-medium">Belum ada URL gambar yang dimasukkan.</p>
       </div>
-
+    )}
+  </div>
+</div>
+</div>
       {/* Tabel Daftar Toto */}
       <h2 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-purple-300' : 'text-purple-800'}`}>Daftar Pasaran Toto Aktif</h2>
       <div className={`rounded-2xl border overflow-hidden shadow-xl max-w-6xl transition-colors duration-300 ${isDarkMode ? 'bg-[#1a0033] border-purple-800' : 'bg-white border-gray-300'}`}>
