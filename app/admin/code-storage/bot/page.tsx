@@ -230,7 +230,7 @@ async function handleUpload() {
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
         ) : (
-          Object.entries(groupedFiles).map(([folderName, folderFiles]) => {
+          Object.entries(groupedFiles).map(([folderName, folderFiles]: [string, any]) => {
             const folderQuery = folderQueries[folderName] || '';
             const filteredFolderFiles = folderFiles.filter((f) =>
               f.name.toLowerCase().includes(folderQuery.toLowerCase())
