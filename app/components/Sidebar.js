@@ -13,6 +13,9 @@ import {
   Landmark,
   FileText,
   Dices,
+  Database,
+  Settings,
+  Wrench,
   ChevronUp
 } from 'lucide-react';
 
@@ -23,7 +26,7 @@ export default function Sidebar({ isOpen }) {
     member: false,
     promosi: false,
     togel: false,
-    Laporan: false,PengaturanProvider: false,PengaturanPeralatan:false,
+    Laporan: false,PengaturanProvider: false,PengaturanPeralatan:false,storage:false,
     PengaturanBank: false,
   });
 
@@ -206,17 +209,17 @@ export default function Sidebar({ isOpen }) {
 
 
 
-                              <div>
-             <button 
-              onClick={() => toggleMenu('PengaturanProvider')} 
-              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-            >
-              <div className="flex items-center">
-                <Landmark className="w-4 h-4 mr-3 text-slate-400" /> 
-                <span>Pengaturan Provider</span>
-              </div>
-              {openMenus.PengaturanProvider ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-            </button>
+<div>
+  <button 
+    onClick={() => toggleMenu('PengaturanProvider')} 
+    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+  >
+    <div className="flex items-center">
+      <Settings className="w-4 h-4 mr-3 text-slate-400" /> 
+      <span>Pengaturan Provider</span>
+    </div>
+    {openMenus.PengaturanProvider ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+  </button>
 
             {openMenus.PengaturanProvider && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
@@ -232,19 +235,17 @@ export default function Sidebar({ isOpen }) {
           </div>
 
 
-
-
-                              <div>
-             <button 
-              onClick={() => toggleMenu('PengaturanPeralatan')} 
-              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-            >
-              <div className="flex items-center">
-                <Landmark className="w-4 h-4 mr-3 text-slate-400" /> 
-                <span>Pengaturan Peralatan</span>
-              </div>
-              {openMenus.PengaturanPeralatan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-            </button>
+<div>
+  <button 
+    onClick={() => toggleMenu('PengaturanPeralatan')} 
+    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+  >
+    <div className="flex items-center">
+      <Wrench className="w-4 h-4 mr-3 text-slate-400" /> 
+      <span>Pengaturan Peralatan</span>
+    </div>
+    {openMenus.PengaturanPeralatan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+  </button>
 
             {openMenus.PengaturanPeralatan && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
@@ -254,10 +255,32 @@ export default function Sidebar({ isOpen }) {
                 <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Info</Link>
                 <Link href="/admin/popular-games" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Populer</Link>
                 <Link href="/admin/promosi" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Promosi</Link>
-                <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Carsh</Link>
+                <Link href="/live-preview-tool" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Live Preview Tool</Link>
               </div>
             )}
           </div>
+
+
+
+<div>
+  <button 
+    onClick={() => toggleMenu('storage')} 
+    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+  >
+    <div className="flex items-center">
+      <Database className="w-4 h-4 mr-3 text-slate-400" /> {/* Ikon diganti ke Database */}
+      <span>storage</span>
+    </div>
+    {openMenus.storage ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+  </button>
+
+  {openMenus.storage && (
+    <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+      <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>bot</span></Link>
+      <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />extession</Link>
+    </div>
+  )}
+</div>
 
         </nav>
       </div>
