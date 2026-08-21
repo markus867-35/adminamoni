@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import Swal from 'sweetalert2'; // Pastikan sudah diimpor di bagian atas file
+import Swal from 'sweetalert2'; 
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,12 +12,10 @@ export default function AdminCodeStorage() {
   const [files, setFiles] = useState<any[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // State untuk pencarian global
+  const [searchQuery, setSearchQuery] = useState(''); 
 
-  // State untuk pencarian spesifik di dalam masing-masing folder
   const [folderQueries, setFolderQueries] = useState<Record<string, string>>({});
 
-  // State untuk Modal Preview/Edit Kode
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
   const [selectedFilePath, setSelectedFilePath] = useState<string>(''); 
@@ -58,7 +56,7 @@ export default function AdminCodeStorage() {
     setUploading(false);
     setSelectedFiles([]);
     fetchFiles();
-    alert('Folder dan seluruh file berhasil diunggah!');
+    Swal.fire('Berhasil!', 'Folder dan seluruh file berhasil diunggah!', 'success');
   }
 
   async function openFile(url: string, name: string, path: string) {
@@ -94,9 +92,9 @@ export default function AdminCodeStorage() {
     setSavingEdit(false);
 
     if (error) {
-      alert('Gagal menyimpan perubahan: ' + error.message);
+      Swal.fire('Gagal', 'Gagal menyimpan perubahan: ' + error.message, 'error');
     } else {
-      alert('Perubahan berhasil disimpan!');
+      Swal.fire('Berhasil!', 'Perubahan berhasil disimpan!', 'success');
       setIsEditorOpen(false);
       fetchFiles();
     }
@@ -119,30 +117,74 @@ export default function AdminCodeStorage() {
 
   async function handleDelete(id: string, path: string, e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm('Apakah kamu yakin ingin menghapus file ini?')) return;
+    const result = await Swal.fire({
+      title: 'Apakah kamu yakin?',
+      text: 'File ini akan dihapus permanen!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!result.isConfirmed) return;
 
     await supabase.storage.from('codes').remove([path]);
-    
     const { error } = await supabase.from('extensions').delete().eq('id', id);
 
     if (error) {
-      alert('Gagal menghapus file: ' + error.message);
+      Swal.fire('Gagal', 'Gagal menghapus file: ' + error.message, 'error');
     } else {
       fetchFiles();
+      Swal.fire('Terhapus!', 'File berhasil dihapus.', 'success');
     }
   }
 
-  // Handler untuk mengubah query pencarian di folder tertentu
+  // --- FUNGSI HAPUS SATU FOLDER PENUH ---
+  async function handleDeleteFolder(folderName: string, folderFiles: any[], e: React.MouseEvent) {
+    e.stopPropagation();
+    const result = await Swal.fire({
+      title: `Hapus Folder "${folderName}"?`,
+      text: `Semua file (${folderFiles.length} file) di dalam folder ini akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Hapus Folder!',
+      cancelButtonText: 'Batal'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      // Ambil path semua file di dalam folder tersebut
+      const filePaths = folderFiles.map((f) => f.path);
+      const fileIds = folderFiles.map((f) => f.id);
+
+      // Hapus dari Storage Supabase
+      if (filePaths.length > 0) {
+        await supabase.storage.from('codes').remove(filePaths);
+      }
+
+      // Hapus dari Database Table
+      for (const id of fileIds) {
+        await supabase.from('extensions').delete().eq('id', id);
+      }
+
+      fetchFiles();
+      Swal.fire('Terhapus!', `Folder ${folderName} beserta isinya berhasil dihapus.`, 'success');
+    } catch (err: any) {
+      Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus folder: ' + err.message, 'error');
+    }
+  }
+
   const handleFolderSearch = (folderName: string, query: string) => {
     setFolderQueries(prev => ({ ...prev, [folderName]: query }));
   };
 
-  // --- LOGIKA FILTER BERDASARKAN SEARCH QUERY GLOBAL ---
   const filteredFiles = files.filter((file) => 
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- LOGIKA PENGELOMPOKKAN BERDASARKAN FOLDER ---
   const groupedFiles = filteredFiles.reduce((acc, file) => {
     const parts = file.name.split('/');
     if (parts.length > 1) {
@@ -160,7 +202,6 @@ export default function AdminCodeStorage() {
     <div className="p-8 max-w-7xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
       <h1 className="text-2xl font-bold mb-6">Code Extension</h1>
 
-      {/* Bagian Upload Folder */}
       <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl mb-4 flex flex-col md:flex-row items-center gap-4 shadow-sm">
         <input 
           type="file" 
@@ -180,7 +221,6 @@ export default function AdminCodeStorage() {
         </button>
       </div>
 
-      {/* Bagian Search Bar Global */}
       <div className="mb-8">
         <input
           type="text"
@@ -191,7 +231,6 @@ export default function AdminCodeStorage() {
         />
       </div>
 
-      {/* Bagian Tampilan Terkelompok Berdasarkan Folder */}
       <div className="space-y-6">
         <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">DAFTAR FOLDER & FILE TERSIMPAN</h2>
         
@@ -199,26 +238,44 @@ export default function AdminCodeStorage() {
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-8 rounded-xl text-center text-gray-400">
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
-) : (
-  Object.entries(groupedFiles).map(([folderName, filesList]) => {
-    const folderFiles = filesList as any[];
-    const folderQuery = folderQueries[folderName] || '';
-    const filteredFolderFiles = folderFiles.filter((f: any) =>
-      f.name.toLowerCase().includes(folderQuery.toLowerCase())
-    );
+        ) : (
+          Object.entries(groupedFiles).map(([folderName, filesList]) => {
+            const folderFiles = filesList as any[];
+            const folderQuery = folderQueries[folderName] || '';
+            const filteredFolderFiles = folderFiles.filter((f: any) =>
+              f.name.toLowerCase().includes(folderQuery.toLowerCase())
+            );
 
             return (
               <div 
                 key={folderName}
                 className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm space-y-4"
               >
-                {/* Judul Seksi Folder & Search Bar Khusus Folder */}
+                {/* Header Folder & Menu Titik Tiga Folder */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <span className="text-xl">📁</span>
-                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-                      {folderName}<span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
+                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                      {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
                     </h3>
+
+                    {/* Titik Tiga untuk Hapus Folder */}
+                    <div className="relative group/folderMenu inline-block">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-200/60 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
+                      >
+                        ⋮
+                      </button>
+                      <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/folderMenu:block text-left z-20">
+                        <button 
+                          onClick={(e) => handleDeleteFolder(folderName, folderFiles, e)}
+                          className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
+                        >
+                          🗑️ Hapus Folder
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <input
@@ -230,7 +287,6 @@ export default function AdminCodeStorage() {
                   />
                 </div>
 
-                {/* Grid File di dalam Folder Tersebut */}
                 {filteredFolderFiles.length === 0 ? (
                   <div className="text-center py-6 text-xs text-gray-400">
                     Tidak ada file yang cocok dengan pencarian di folder ini.
@@ -248,7 +304,6 @@ export default function AdminCodeStorage() {
                           onClick={() => openFile(fileUrl, f.name, f.path)}
                           className="group relative bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 hover:border-indigo-500/50 p-4 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer"
                         >
-                          {/* Tombol Titik Tiga (Menu Aksi) */}
                           <div className="absolute top-2 right-2 z-10">
                             <div className="relative group/menu">
                               <button 
@@ -278,12 +333,10 @@ export default function AdminCodeStorage() {
                             </div>
                           </div>
 
-                          {/* Ikon File */}
                           <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
                             {getFileIcon(f.name)}
                           </div>
 
-                          {/* Nama File */}
                           <span className="text-xs text-gray-800 dark:text-gray-200 font-medium line-clamp-2 w-full mb-2 break-all" title={displayName}>
                             {displayName}
                           </span>
@@ -303,7 +356,6 @@ export default function AdminCodeStorage() {
         )}
       </div>
 
-      {/* Modal / Pop-up untuk Menampilkan Isi Kode */}
       {isEditorOpen && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col p-6 shadow-2xl">
@@ -342,7 +394,14 @@ export default function AdminCodeStorage() {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(selectedCode || '');
-                  alert('Kode berhasil disalin ke clipboard!');
+                  Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Kode disalin ke clipboard!',
+                    showConfirmButton: false,
+                    timer: 1500
+                  });
                 }}
                 className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-4 py-2 rounded-lg font-medium transition-all"
               >
