@@ -199,12 +199,13 @@ export default function AdminCodeStorage() {
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-8 rounded-xl text-center text-gray-400">
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
-        ) : (
-          Object.entries(groupedFiles).map(([folderName, folderFiles]) => {
-            const folderQuery = folderQueries[folderName] || '';
-            const filteredFolderFiles = folderFiles.filter((f) =>
-              f.name.toLowerCase().includes(folderQuery.toLowerCase())
-            );
+) : (
+  Object.entries(groupedFiles).map(([folderName, filesList]) => {
+    const folderFiles = filesList as any[]; // Tambahkan casting ini
+    const folderQuery = folderQueries[folderName] || '';
+    const filteredFolderFiles = folderFiles.filter((f: any) =>
+      f.name.toLowerCase().includes(folderQuery.toLowerCase())
+    );
 
             return (
               <div 
@@ -216,7 +217,7 @@ export default function AdminCodeStorage() {
                   <div className="flex items-center gap-2">
                     <span className="text-xl">📁</span>
                     <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-                      {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
+                      {folderName}<span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
                     </h3>
                   </div>
 
