@@ -201,7 +201,7 @@ export default function AdminCodeStorage() {
           </div>
 ) : (
   Object.entries(groupedFiles).map(([folderName, filesList]) => {
-    const folderFiles = filesList as any[]; // Tambahkan casting ini
+    const folderFiles = filesList as any[];
     const folderQuery = folderQueries[folderName] || '';
     const filteredFolderFiles = folderFiles.filter((f: any) =>
       f.name.toLowerCase().includes(folderQuery.toLowerCase())
