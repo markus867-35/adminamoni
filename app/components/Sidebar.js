@@ -276,8 +276,9 @@ export default function Sidebar({ isOpen }) {
 
   {openMenus.storage && (
     <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-      <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>bot</span></Link>
-      <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />extession</Link>
+      <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Bot</span></Link>
+      <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Extession</Link>
+      <Link href="/admin/code-storage/managerimage" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Manager Image</Link>
     </div>
   )}
 </div>

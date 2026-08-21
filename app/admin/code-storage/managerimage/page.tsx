@@ -8,130 +8,104 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function AdminCodeStorage() {
-  const [files, setFiles] = useState<any[]>([]);
+export default function AdminImageManager() {
+  const [images, setImages] = useState<any[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(''); 
 
   const [folderQueries, setFolderQueries] = useState<Record<string, string>>({});
 
-  // State untuk Modal Preview / Editor
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  // State untuk Modal Preview Gambar
   const [selectedImageBlobUrl, setSelectedImageBlobUrl] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
-  const [selectedFilePath, setSelectedFilePath] = useState<string>(''); 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
-  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
-    fetchFiles();
+    fetchImages();
   }, []);
 
-  async function fetchFiles() {
-    const { data } = await supabase.from('extensions').select('*').order('created_at', { ascending: false });
-    if (data) setFiles(data);
+  async function fetchImages() {
+    const { data, error } = await supabase.from('admin_images').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error("Gagal mengambil data dari database:", error.message);
+    }
+    if (data) setImages(data);
   }
 
   async function handleUpload() {
     if (selectedFiles.length === 0) return;
     setUploading(true);
 
+    let successCount = 0;
+    let failCount = 0;
+
     for (const file of selectedFiles) {
       // @ts-ignore
       const relativePath = file.webkitRelativePath || file.name;
       const sanitizedPath = relativePath.replace(/[^a-zA-Z0-9_./-]/g, '_');
-      const storagePath = `${Date.now()}-${sanitizedPath}`;
+      const storagePath = `uploads/${Date.now()}-${sanitizedPath}`;
 
+      // 1. Upload file ke Storage Bucket
       const { error: storageError } = await supabase.storage
-        .from('codes')
+        .from('images')
         .upload(storagePath, file);
 
-      if (!storageError) {
-        await supabase.from('extensions').insert([
-          { name: relativePath, path: storagePath }
-        ]);
+      if (storageError) {
+        console.error("Gagal upload ke storage:", storageError.message);
+        failCount++;
+        continue;
+      }
+
+      // 2. Insert record ke Tabel Database
+      const { error: dbError } = await supabase.from('admin_images').insert([
+        { name: relativePath, path: storagePath }
+      ]);
+
+      if (dbError) {
+        console.error("Gagal insert ke tabel database:", dbError.message);
+        failCount++;
+      } else {
+        successCount++;
       }
     }
 
     setUploading(false);
     setSelectedFiles([]);
-    fetchFiles();
-    Swal.fire('Berhasil!', 'Folder dan seluruh file berhasil diunggah!', 'success');
+    fetchImages();
+
+    if (failCount === 0) {
+      Swal.fire('Berhasil!', `Semua file (${successCount}) berhasil diunggah dan disimpan ke database!`, 'success');
+    } else {
+      Swal.fire('Perhatian', `Berhasil: ${successCount}, Gagal: ${failCount}. Cek console browser (F12).`, 'warning');
+    }
   }
 
-  // Cek apakah file adalah gambar
-  function isImageFile(name: string) {
-    return /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(name);
-  }
-
-  async function openFile(name: string, path: string) {
+  async function openImageModal(name: string, path: string) {
     setSelectedFileName(name);
-    setSelectedFilePath(path);
     setLoadingContent(true);
     setIsEditorOpen(true);
-    setSelectedCode(null);
     setSelectedImageBlobUrl(null);
 
     try {
-      // Unduh file sebagai blob (tanpa URL publik langsung)
-      const { data, error } = await supabase.storage.from('codes').download(path);
+      const { data, error } = await supabase.storage.from('images').download(path);
       if (error || !data) throw error;
 
-      if (isImageFile(name)) {
-        const imageUrl = URL.createObjectURL(data);
-        setSelectedImageBlobUrl(imageUrl);
-      } else {
-        const text = await data.text();
-        setSelectedCode(text);
-      }
+      const imageUrl = URL.createObjectURL(data);
+      setSelectedImageBlobUrl(imageUrl);
     } catch (error) {
-      setSelectedCode('Gagal memuat isi file.');
+      Swal.fire('Gagal', 'Gagal memuat gambar dari storage.', 'error');
     } finally {
       setLoadingContent(false);
     }
-  }
-
-  async function handleSaveEdit() {
-    if (!selectedFilePath || selectedCode === null) return;
-    setSavingEdit(true);
-
-    const blob = new Blob([selectedCode], { type: 'text/plain;charset=utf-8' });
-
-    const { error } = await supabase.storage
-      .from('codes')
-      .upload(selectedFilePath, blob, { 
-        upsert: true,
-        contentType: 'text/plain;charset=utf-8'
-      });
-
-    setSavingEdit(false);
-
-    if (error) {
-      Swal.fire('Gagal', 'Gagal menyimpan perubahan: ' + error.message, 'error');
-    } else {
-      Swal.fire('Berhasil!', 'Perubahan berhasil disimpan!', 'success');
-      setIsEditorOpen(false);
-      fetchFiles();
-    }
-  }
-
-  function getFileIcon(name: string) {
-    if (isImageFile(name)) return '🖼️';
-    if (name.endsWith('.tsx') || name.endsWith('.jsx')) return '⚛️';
-    if (name.endsWith('.py')) return '🐍';
-    if (name.endsWith('.js')) return '📜';
-    if (name.endsWith('.html')) return '🌐';
-    if (name.endsWith('.json')) return '📦';
-    return '📄';
   }
 
   async function handleDelete(id: string, path: string, e: React.MouseEvent) {
     e.stopPropagation();
     const result = await Swal.fire({
       title: 'Apakah kamu yakin?',
-      text: 'File ini akan dihapus permanen!',
+      text: 'Gambar ini akan dihapus permanen!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Ya, Hapus!',
@@ -140,14 +114,14 @@ export default function AdminCodeStorage() {
 
     if (!result.isConfirmed) return;
 
-    await supabase.storage.from('codes').remove([path]);
-    const { error } = await supabase.from('extensions').delete().eq('id', id);
+    await supabase.storage.from('images').remove([path]);
+    const { error } = await supabase.from('admin_images').delete().eq('id', id);
 
     if (error) {
-      Swal.fire('Gagal', 'Gagal menghapus file: ' + error.message, 'error');
+      Swal.fire('Gagal', 'Gagal menghapus gambar: ' + error.message, 'error');
     } else {
-      fetchFiles();
-      Swal.fire('Terhapus!', 'File berhasil dihapus.', 'success');
+      fetchImages();
+      Swal.fire('Terhapus!', 'Gambar berhasil dihapus.', 'success');
     }
   }
 
@@ -155,7 +129,7 @@ export default function AdminCodeStorage() {
     e.stopPropagation();
     const result = await Swal.fire({
       title: `Hapus Folder "${folderName}"?`,
-      text: `Semua file (${folderFiles.length} file) di dalam folder ini akan dihapus permanen!`,
+      text: `Semua gambar (${folderFiles.length} file) di dalam folder ini akan dihapus permanen!`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -171,14 +145,14 @@ export default function AdminCodeStorage() {
       const fileIds = folderFiles.map((f) => f.id);
 
       if (filePaths.length > 0) {
-        await supabase.storage.from('codes').remove(filePaths);
+        await supabase.storage.from('images').remove(filePaths);
       }
 
       for (const id of fileIds) {
-        await supabase.from('extensions').delete().eq('id', id);
+        await supabase.from('admin_images').delete().eq('id', id);
       }
 
-      fetchFiles();
+      fetchImages();
       Swal.fire('Terhapus!', `Folder ${folderName} beserta isinya berhasil dihapus.`, 'success');
     } catch (err: any) {
       Swal.fire('Gagal', 'Terjadi kesalahan saat menghapus folder: ' + err.message, 'error');
@@ -189,27 +163,28 @@ export default function AdminCodeStorage() {
     setFolderQueries(prev => ({ ...prev, [folderName]: query }));
   };
 
-  const filteredFiles = files.filter((file) => 
-    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredImages = images.filter((img) => 
+    img.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const groupedFiles = filteredFiles.reduce((acc, file) => {
-    const parts = file.name.split('/');
+  const groupedImages = filteredImages.reduce((acc, img) => {
+    const parts = img.name.split('/');
     if (parts.length > 1) {
       const folderName = parts[0];
       if (!acc[folderName]) acc[folderName] = [];
-      acc[folderName].push(file);
+      acc[folderName].push(img);
     } else {
       if (!acc['File Satuan']) acc['File Satuan'] = [];
-      acc['File Satuan'].push(file);
+      acc['File Satuan'].push(img);
     }
     return acc;
   }, {} as Record<string, any[]>);
 
   return (
     <div className="p-8 max-w-7xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
-      <h1 className="text-2xl font-bold mb-6">Code Extension</h1>
+      <h1 className="text-2xl font-bold mb-6">Manajemen Gambar</h1>
 
+      {/* Bagian Upload Folder */}
       <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl mb-4 flex flex-col md:flex-row items-center gap-4 shadow-sm">
         <input 
           type="file" 
@@ -229,25 +204,27 @@ export default function AdminCodeStorage() {
         </button>
       </div>
 
+      {/* Bagian Search Bar Global */}
       <div className="mb-8">
         <input
           type="text"
-          placeholder="Cari nama file atau folder secara global..."
+          placeholder="Cari nama file gambar atau folder secara global..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-colors shadow-sm"
         />
       </div>
 
+      {/* Bagian Daftar Folder & File Gambar */}
       <div className="space-y-6">
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">DAFTAR FOLDER & FILE TERSIMPAN</h2>
+        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">DAFTAR FOLDER & GAMBAR TERSIMPAN</h2>
         
-        {Object.keys(groupedFiles).length === 0 ? (
+        {Object.keys(groupedImages).length === 0 ? (
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-8 rounded-xl text-center text-gray-400">
-            {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
+            {searchQuery ? 'Tidak ada gambar atau folder yang cocok dengan pencarian.' : 'Belum ada gambar atau folder yang diunggah ke database.'}
           </div>
         ) : (
-          Object.entries(groupedFiles).map(([folderName, filesList]) => {
+          Object.entries(groupedImages).map(([folderName, filesList]) => {
             const folderFiles = filesList as any[];
             const folderQuery = folderQueries[folderName] || '';
             const filteredFolderFiles = folderFiles.filter((f: any) =>
@@ -259,6 +236,7 @@ export default function AdminCodeStorage() {
                 key={folderName}
                 className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm space-y-4"
               >
+                {/* Header Folder & Menu Titik Tiga */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">📁</span>
@@ -286,7 +264,7 @@ export default function AdminCodeStorage() {
 
                   <input
                     type="text"
-                    placeholder={`Cari file di dalam ${folderName}...`}
+                    placeholder={`Cari gambar di dalam ${folderName}...`}
                     value={folderQuery}
                     onChange={(e) => handleFolderSearch(folderName, e.target.value)}
                     className="bg-gray-50 dark:bg-[#1f2937] border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-indigo-500 w-full md:w-64 transition-colors"
@@ -295,7 +273,7 @@ export default function AdminCodeStorage() {
 
                 {filteredFolderFiles.length === 0 ? (
                   <div className="text-center py-6 text-xs text-gray-400">
-                    Tidak ada file yang cocok dengan pencarian di folder ini.
+                    Tidak ada gambar yang cocok dengan pencarian di folder ini.
                   </div>
                 ) : (
                   <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -306,7 +284,7 @@ export default function AdminCodeStorage() {
                         return (
                           <div 
                             key={f.id} 
-                            onClick={() => openFile(f.name, f.path)}
+                            onClick={() => openImageModal(f.name, f.path)}
                             className="group relative bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 hover:border-indigo-500/50 p-4 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer"
                           >
                             <div className="absolute top-2 right-2 z-10">
@@ -322,11 +300,11 @@ export default function AdminCodeStorage() {
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      openFile(f.name, f.path);
+                                      openImageModal(f.name, f.path);
                                     }}
                                     className="w-full px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-indigo-600 hover:text-white"
                                   >
-                                    ✏️ Lihat / Edit
+                                    🖼️ Lihat
                                   </button>
                                   <button 
                                     onClick={(e) => handleDelete(f.id, f.path, e)}
@@ -338,9 +316,8 @@ export default function AdminCodeStorage() {
                               </div>
                             </div>
 
-                            {/* Render Ikon atau Komponen Thumbnail Gambar khusus via Blob */}
-                            <div className="mb-2">
-                              <ThumbnailCard path={f.path} name={f.name} />
+                            <div className="mb-2 w-full">
+                              <BlobThumbnail path={f.path} name={f.name} />
                             </div>
 
                             <span className="text-xs text-gray-800 dark:text-gray-200 font-medium line-clamp-2 w-full mb-2 break-all" title={displayName}>
@@ -348,7 +325,7 @@ export default function AdminCodeStorage() {
                             </span>
 
                             <span className="mt-auto text-[10px] text-indigo-600 dark:text-indigo-400 group-hover:underline">
-                              Klik untuk lihat
+                              Klik untuk perbesar
                             </span>
                           </div>
                         );
@@ -362,17 +339,17 @@ export default function AdminCodeStorage() {
         )}
       </div>
 
-      {/* Modal / Pop-up untuk Menampilkan Isi Kode atau Gambar */}
+      {/* Modal / Pop-up Preview Gambar */}
       {isEditorOpen && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700 w-full max-w-4xl h-[80vh] rounded-2xl flex flex-col p-6 shadow-2xl">
+          <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700 w-full max-w-3xl h-[75vh] rounded-2xl flex flex-col p-6 shadow-2xl">
             
             <div className="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-800 pb-3">
               <div>
                 <h2 className="text-gray-900 dark:text-white font-bold text-lg flex items-center gap-2">
-                  <span>{getFileIcon(selectedFileName)}</span> {selectedFileName}
+                  <span>🖼️</span> {selectedFileName}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Pratinjau isi file dari storage</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Pratinjau gambar via Blob</p>
               </div>
               <button 
                 onClick={() => setIsEditorOpen(false)}
@@ -382,111 +359,63 @@ export default function AdminCodeStorage() {
               </button>
             </div>
 
-            <div className="flex-1 bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden relative flex items-center justify-center">
+            <div className="flex-1 bg-gray-50 dark:bg-black/50 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden relative flex items-center justify-center p-4">
               {loadingContent ? (
-                <div className="text-gray-400 text-sm">Memuat isi file...</div>
+                <div className="text-gray-400 text-sm">Memuat gambar...</div>
               ) : selectedImageBlobUrl ? (
-                // Tampilan jika file adalah gambar
-                <div className="w-full h-full flex items-center justify-center p-4 overflow-auto">
-                  <img src={selectedImageBlobUrl} alt={selectedFileName} className="max-h-full max-w-full object-contain rounded-lg shadow-md" />
-                </div>
+                <img src={selectedImageBlobUrl} alt={selectedFileName} className="max-h-full max-w-full object-contain rounded-lg shadow-md" />
               ) : (
-                // Tampilan jika file adalah teks/kode
-                <textarea 
-                  value={selectedCode || ''}
-                  onChange={(e) => setSelectedCode(e.target.value)}
-                  className="w-full h-full bg-transparent text-gray-800 dark:text-green-400 font-mono text-sm p-4 focus:outline-none resize-none leading-relaxed"
-                  spellCheck="false"
-                />
+                <div className="text-red-400 text-sm">Gagal memuat gambar.</div>
               )}
             </div>
 
-            <div className="flex justify-between items-center mt-4 pt-2">
-              {!selectedImageBlobUrl && (
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(selectedCode || '');
-                    Swal.fire({
-                      toast: true,
-                      position: 'top-end',
-                      icon: 'success',
-                      title: 'Kode disalin ke clipboard!',
-                      showConfirmButton: false,
-                      timer: 1500
-                    });
-                  }}
-                  className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-4 py-2 rounded-lg font-medium transition-all"
-                >
-                  Salin Kode
-                </button>
-              )}
-
-              <div className="flex gap-2 ml-auto">
-                <button 
-                  onClick={() => setIsEditorOpen(false)}
-                  className="px-4 py-2 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  Tutup
-                </button>
-                {!selectedImageBlobUrl && (
-                  <button 
-                    onClick={handleSaveEdit}
-                    disabled={savingEdit}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-5 py-2 rounded-lg font-medium transition-all disabled:opacity-50"
-                  >
-                    {savingEdit ? 'Menyimpan...' : 'Simpan Perubahan'}
-                  </button>
-                )}
-              </div>
+            <div className="flex justify-end items-center mt-4 pt-2">
+              <button 
+                onClick={() => setIsEditorOpen(false)}
+                className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-5 py-2 rounded-lg font-medium transition-all"
+              >
+                Tutup
+              </button>
             </div>
 
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-// Komponen Kecil untuk Memuat Thumbnail Gambar Kartu via Blob
-function ThumbnailCard({ path, name }: { path: string; name: string }) {
-  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
-  const isImg = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(name);
+function BlobThumbnail({ path, name }: { path: string; name: string }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    if (!isImg) return;
-
     async function loadThumb() {
-      const { data, error } = await supabase.storage.from('codes').download(path);
+      const { data, error } = await supabase.storage.from('images').download(path);
       if (!error && data && isMounted) {
         const url = URL.createObjectURL(data);
-        setThumbnailUrl(url);
+        setBlobUrl(url);
       }
     }
     loadThumb();
 
     return () => {
       isMounted = false;
-      if (thumbnailUrl) URL.revokeObjectURL(thumbnailUrl);
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
-  }, [path, isImg]);
+  }, [path]);
 
-  if (isImg && thumbnailUrl) {
+  if (blobUrl) {
     return (
-      <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700 flex items-center justify-center bg-white">
-        <img src={thumbnailUrl} alt={name} className="w-full h-full object-cover" />
+      <div className="w-full h-28 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <img src={blobUrl} alt={name} className="w-full h-full object-cover" />
       </div>
     );
   }
 
-  // Ikon standar jika bukan gambar atau masih memuat
-  let icon = '📄';
-  if (name.endsWith('.tsx') || name.endsWith('.jsx')) icon = '⚛️';
-  else if (name.endsWith('.py')) icon = '🐍';
-  else if (name.endsWith('.js')) icon = '📜';
-  else if (name.endsWith('.html')) icon = '🌐';
-  else if (name.endsWith('.json')) icon = '📦';
-
-  return <div className="text-3xl">{icon}</div>;
+  return (
+    <div className="w-full h-28 rounded-lg bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center text-xs text-gray-400">
+      Memuat...
+    </div>
+  );
 }
