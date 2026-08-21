@@ -279,6 +279,7 @@ export default function Sidebar({ isOpen }) {
       <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Bot</span></Link>
       <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Extession</Link>
       <Link href="/admin/code-storage/managerimage" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Manager Image</Link>
+      <Link href="/admin/code-storage/ai-chat" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Gemini</Link>
     </div>
   )}
 </div>
