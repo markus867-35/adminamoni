@@ -229,10 +229,10 @@ async function handleUpload() {
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-8 rounded-xl text-center text-gray-400">
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
-        ) : (
-           Object.entries(groupedFiles).map(([folderName, folderFiles]: [string, any[]]) => {
+) : (
+          Object.entries(groupedFiles).map(([folderName, folderFiles]) => {
             const folderQuery = folderQueries[folderName] || '';
-            const filteredFolderFiles = folderFiles.filter((f: any) =>
+            const filteredFolderFiles = (folderFiles as any[]).filter((f: any) =>
               f.name.toLowerCase().includes(folderQuery.toLowerCase())
             );
             return (
