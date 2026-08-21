@@ -32,50 +32,49 @@ export default function AdminCodeStorage() {
     if (data) setFiles(data);
   }
 
-async function handleUpload() {
-  if (selectedFiles.length === 0) return;
-  setUploading(true);
+  async function handleUpload() {
+    if (selectedFiles.length === 0) return;
+    setUploading(true);
 
-  let successCount = 0;
-  let failCount = 0;
+    let successCount = 0;
+    let failCount = 0;
 
-  for (const file of selectedFiles) {
-    // @ts-ignore
-    const relativePath = file.webkitRelativePath || file.name;
-    const sanitizedPath = relativePath.replace(/[^a-zA-Z0-9_./-]/g, '_');
-    const storagePath = `${Date.now()}-${sanitizedPath}`;
+    for (const file of selectedFiles) {
+      // @ts-ignore
+      const relativePath = file.webkitRelativePath || file.name;
+      const sanitizedPath = relativePath.replace(/[^a-zA-Z0-9_./-]/g, '_');
+      const storagePath = `${Date.now()}-${sanitizedPath}`;
 
-    const { error: storageError } = await supabase.storage
-      .from('codes')
-      .upload(storagePath, file);
+      const { error: storageError } = await supabase.storage
+        .from('codes')
+        .upload(storagePath, file);
 
-    if (!storageError) {
-      const { error: dbError } = await supabase.from('code_files').insert([
-        { name: relativePath, path: storagePath }
-      ]);
-      
-      if (!dbError) {
-        successCount++;
+      if (!storageError) {
+        const { error: dbError } = await supabase.from('code_files').insert([
+          { name: relativePath, path: storagePath }
+        ]);
+        
+        if (!dbError) {
+          successCount++;
+        } else {
+          failCount++;
+        }
       } else {
         failCount++;
       }
-    } else {
-      failCount++;
     }
+
+    setUploading(false);
+    setSelectedFiles([]);
+    fetchFiles();
+
+    Swal.fire({
+      icon: failCount === 0 ? 'success' : 'warning',
+      title: failCount === 0 ? 'Berhasil!' : 'Selesai dengan catatan',
+      text: `Folder dan seluruh file berhasil diunggah! (${successCount} berhasil${failCount > 0 ? `, ${failCount} gagal` : ''})`,
+      confirmButtonColor: '#4f46e5',
+    });
   }
-
-  setUploading(false);
-  setSelectedFiles([]);
-  fetchFiles();
-
-  // Menampilkan SweetAlert berdasarkan hasil unggahan
-  Swal.fire({
-    icon: failCount === 0 ? 'success' : 'warning',
-    title: failCount === 0 ? 'Berhasil!' : 'Selesai dengan catatan',
-    text: `Folder dan seluruh file berhasil diunggah! (${successCount} berhasil${failCount > 0 ? `, ${failCount} gagal` : ''})`,
-    confirmButtonColor: '#4f46e5',
-  });
-}
 
   async function openFile(url: string, name: string, path: string) {
     setSelectedFileName(name);
@@ -147,7 +146,6 @@ async function handleUpload() {
     }
   }
 
-  // Fungsi baru untuk menghapus seluruh folder dan file di dalamnya
   async function handleDeleteFolder(folderName: string, folderFiles: any[], e: React.MouseEvent) {
     e.stopPropagation();
     if (!confirm(`Apakah kamu yakin ingin menghapus seluruh folder "${folderName}" beserta ${folderFiles.length} file di dalamnya?`)) return;
@@ -155,10 +153,7 @@ async function handleUpload() {
     const pathsToRemove = folderFiles.map(f => f.path);
     const idsToRemove = folderFiles.map(f => f.id);
 
-    // Hapus dari Storage Supabase
     await supabase.storage.from('codes').remove(pathsToRemove);
-
-    // Hapus dari Database Supabase
     const { error } = await supabase.from('code_files').delete().in('id', idsToRemove);
 
     if (error) {
@@ -229,44 +224,42 @@ async function handleUpload() {
           <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-8 rounded-xl text-center text-gray-400">
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
-) : (
-  Object.entries(groupedFiles).map(([folderName, filesList]) => {
-    const folderFiles = filesList as any[]; // Deklarasikan di sini
-    const folderQuery = folderQueries[folderName] || '';
-    const filteredFolderFiles = folderFiles.filter((f: any) =>
-      f.name.toLowerCase().includes(folderQuery.toLowerCase())
-    );
-    return (
-      <div 
-        key={folderName}
-        className="bg-gray-50/50 dark:bg-[#0b0f19] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-sm space-y-4"
-      >
-        {/* Header Folder & Menu Titik Tiga Folder */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800/60 pb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">📁</span>
-            <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
-              {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
-            </h3>
-
-            {/* Titik Tiga untuk Hapus Folder */}
-            <div className="relative group/folderMenu inline-block">
-              <button 
-                onClick={(e) => e.stopPropagation()}
-                className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-200/60 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
+        ) : (
+          Object.entries(groupedFiles).map(([folderName, filesList]) => {
+            const folderFiles = filesList as any[];
+            const folderQuery = folderQueries[folderName] || '';
+            const filteredFolderFiles = folderFiles.filter((f: any) =>
+              f.name.toLowerCase().includes(folderQuery.toLowerCase())
+            );
+            return (
+              <div 
+                key={folderName}
+                className="bg-gray-50/50 dark:bg-[#0b0f19] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-sm space-y-4"
               >
-                ⋮
-              </button>
-              <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/folderMenu:block text-left z-20">
-                <button 
-                  onClick={(e) => handleDeleteFolder(folderName, folderFiles, e)}
-                  className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
-                >
-                  🗑️ Hapus Folder
-                </button>
-              </div>
-            </div>
-          </div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800/60 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">📁</span>
+                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                      {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
+                    </h3>
+
+                    <div className="relative group/folderMenu inline-block">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-200/60 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
+                      >
+                        ⋮
+                      </button>
+                      <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/folderMenu:block text-left z-20">
+                        <button 
+                          onClick={(e) => handleDeleteFolder(folderName, folderFiles, e)}
+                          className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
+                        >
+                          🗑️ Hapus Folder
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
                   <input
                     type="text"
@@ -283,61 +276,76 @@ async function handleUpload() {
                   </div>
                 ) : (
                   <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                    {filteredFolderFiles.map((f) => {
-                      const fileUrl = supabase.storage.from('codes').getPublicUrl(f.path).data.publicUrl;
-                      const displayName = f.name.includes('/') ? f.name.split('/').slice(1).join('/') : f.name;
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                      {filteredFolderFiles.map((f) => {
+                        const fileUrl = supabase.storage.from('codes').getPublicUrl(f.path).data.publicUrl;
+                        const displayName = f.name.includes('/') ? f.name.split('/').slice(1).join('/') : f.name;
+                        
+                        // Cek apakah file merupakan gambar
+                        const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f.name);
 
-                      return (
-                        <div 
-                          key={f.id} 
-                          onClick={() => openFile(fileUrl, f.name, f.path)}
-                          className="group relative bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800/80 hover:border-indigo-500/50 p-5 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer"
-                        >
-                          <div className="absolute top-2 right-2 z-10">
-                            <div className="relative group/menu">
-                              <button 
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
-                              >
-                                ⋮
-                              </button>
-                              
-                              <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/menu:block text-left">
+                        return (
+                          <div 
+                            key={f.id} 
+                            onClick={() => openFile(fileUrl, f.name, f.path)}
+                            className="group relative bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800/80 hover:border-indigo-500/50 p-4 rounded-xl flex flex-col items-center text-center transition-all hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer overflow-hidden"
+                          >
+                            <div className="absolute top-2 right-2 z-10">
+                              <div className="relative group/menu">
                                 <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openFile(fileUrl, f.name, f.path);
-                                  }}
-                                  className="w-full px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-indigo-600 hover:text-white"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-white/80 dark:bg-gray-900/80 hover:bg-gray-100 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors shadow-sm"
                                 >
-                                  ✏️ Edit / Lihat
+                                  ⋮
                                 </button>
-                                <button 
-                                  onClick={(e) => handleDelete(f.id, f.path, e)}
-                                  className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
-                                >
-                                  🗑️ Hapus
-                                </button>
+                                
+                                <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/menu:block text-left z-20">
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openFile(fileUrl, f.name, f.path);
+                                    }}
+                                    className="w-full px-3 py-1.5 text-xs text-gray-700 dark:text-gray-200 hover:bg-indigo-600 hover:text-white"
+                                  >
+                                    ✏️ Edit / Lihat
+                                  </button>
+                                  <button 
+                                    onClick={(e) => handleDelete(f.id, f.path, e)}
+                                    className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
+                                  >
+                                    🗑️ Hapus
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="text-3xl mb-3 mt-2 group-hover:scale-110 transition-transform">
-                            {getFileIcon(f.name)}
-                          </div>
+                            {/* Kotak Pratinjau Gambar atau Ikon */}
+                            <div className="w-full h-28 mb-3 mt-2 rounded-lg bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-800">
+                              {isImage ? (
+                                <img 
+                                  src={fileUrl} 
+                                  alt={displayName} 
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <span className="text-3xl group-hover:scale-110 transition-transform">
+                                  {getFileIcon(f.name)}
+                                </span>
+                              )}
+                            </div>
 
-                          <span className="text-xs text-gray-800 dark:text-gray-200 font-medium line-clamp-1 w-full mb-1" title={displayName}>
-                            {displayName}
-                          </span>
+                            <span className="text-xs text-gray-800 dark:text-gray-200 font-medium line-clamp-1 w-full mb-1" title={displayName}>
+                              {displayName}
+                            </span>
 
-                          <span className="mt-auto text-[11px] text-indigo-600 dark:text-indigo-400 group-hover:underline">
-                            Klik untuk lihat
-                          </span>
-                        </div> 
-                      );
-                    })}
-                  </div>
+                            <span className="mt-auto text-[11px] text-indigo-600 dark:text-indigo-400 group-hover:underline">
+                              {isImage ? 'Klik untuk perbesar' : 'Klik untuk lihat'}
+                            </span>
+                          </div> 
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
