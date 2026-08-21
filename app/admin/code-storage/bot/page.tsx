@@ -230,42 +230,43 @@ async function handleUpload() {
             {searchQuery ? 'Tidak ada file atau folder yang cocok dengan pencarian.' : 'Belum ada file atau folder kode yang diunggah.'}
           </div>
 ) : (
-          Object.entries(groupedFiles).map(([folderName, folderFiles]) => {
-            const folderQuery = folderQueries[folderName] || '';
-            const filteredFolderFiles = (folderFiles as any[]).filter((f: any) =>
-              f.name.toLowerCase().includes(folderQuery.toLowerCase())
-            );
-            return (
-              <div 
-                key={folderName}
-                className="bg-gray-50/50 dark:bg-[#0b0f19] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-sm space-y-4"
-              >
-                {/* Header Folder & Menu Titik Tiga Folder */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800/60 pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">📁</span>
-                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                      {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
-                    </h3>
+  Object.entries(groupedFiles).map(([folderName, filesList]) => {
+    const folderFiles = filesList as any[]; // Deklarasikan di sini
+    const folderQuery = folderQueries[folderName] || '';
+    const filteredFolderFiles = folderFiles.filter((f: any) =>
+      f.name.toLowerCase().includes(folderQuery.toLowerCase())
+    );
+    return (
+      <div 
+        key={folderName}
+        className="bg-gray-50/50 dark:bg-[#0b0f19] border border-gray-200 dark:border-gray-800 p-6 rounded-2xl shadow-sm space-y-4"
+      >
+        {/* Header Folder & Menu Titik Tiga Folder */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800/60 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">📁</span>
+            <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200 flex items-center gap-2">
+              {folderName} <span className="text-xs text-gray-400 font-normal">({filteredFolderFiles.length} dari {folderFiles.length} file)</span>
+            </h3>
 
-                    {/* Titik Tiga untuk Hapus Folder */}
-                    <div className="relative group/folderMenu inline-block">
-                      <button 
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-200/60 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
-                      >
-                        ⋮
-                      </button>
-                      <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/folderMenu:block text-left z-20">
-                        <button 
-                          onClick={(e) => handleDeleteFolder(folderName, folderFiles, e)}
-                          className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
-                        >
-                          🗑️ Hapus Folder
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+            {/* Titik Tiga untuk Hapus Folder */}
+            <div className="relative group/folderMenu inline-block">
+              <button 
+                onClick={(e) => e.stopPropagation()}
+                className="text-gray-400 hover:text-gray-800 dark:hover:text-white bg-transparent hover:bg-gray-200/60 dark:hover:bg-gray-800 p-1 rounded-md text-xs w-6 h-6 flex items-center justify-center transition-colors"
+              >
+                ⋮
+              </button>
+              <div className="absolute left-0 mt-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 hidden group-hover/folderMenu:block text-left z-20">
+                <button 
+                  onClick={(e) => handleDeleteFolder(folderName, folderFiles, e)}
+                  className="w-full px-3 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-600 hover:text-white"
+                >
+                  🗑️ Hapus Folder
+                </button>
+              </div>
+            </div>
+          </div>
 
                   <input
                     type="text"
