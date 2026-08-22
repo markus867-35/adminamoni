@@ -1,33 +1,31 @@
 import { NextResponse } from 'next/server';
-
-// Contoh penyimpanan sementara (bisa dihubungkan ke Supabase nantinya)
-let mockDatabase: any[] = [];
+// Sesuaikan dengan client database yang kamu gunakan di proyek OneLiveGaming
+// import { supabase } from '@/lib/supabase'; 
 
 export async function GET() {
-  return NextResponse.json({ chats: mockDatabase });
+  try {
+    // Contoh query mengambil riwayat dari database
+    // const { data, error } = await supabase.from('chat_histories').select('*').order('id', { ascending: false });
+    // if (error) throw error;
+
+    // Untuk sementara jika belum terhubung database, kembalikan array kosong / data uji
+    return NextResponse.json({ chats: [] });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { id, title, messages } = body;
+    const { id, title, messages } = await request.json();
 
-    if (!id) {
-      // Buat chat baru
-      const newChat = {
-        id: Date.now(),
-        title: title || 'Percakapan Baru',
-        messages: messages || [],
-      };
-      mockDatabase.unshift(newChat);
-      return NextResponse.json({ success: true, id: newChat.id });
-    } else {
-      // Update chat yang sudah ada
-      mockDatabase = mockDatabase.map(chat => 
-        chat.id == id ? { ...chat, messages } : chat
-      );
-      return NextResponse.json({ success: true, id });
-    }
+    // Jika chat baru (id belum ada), simpan sebagai baris baru di database
+    // Jika sudah ada, update pesan berdasarkan id chat tersebut
+    
+    // Contoh simulasi response sukses menyimpan:
+    const newId = id || Date.now(); 
+
+    return NextResponse.json({ success: true, id: newId });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

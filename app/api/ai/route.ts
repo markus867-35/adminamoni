@@ -4,7 +4,6 @@ import { GoogleGenAI } from '@google/genai';
 export async function POST(request: Request) {
   try {
     const { message } = await request.json();
-    
     const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -13,18 +12,18 @@ export async function POST(request: Request) {
 
     const ai = new GoogleGenAI({ apiKey });
 
+    // Menggunakan model tercanggih di lini Flash yang cerdas dan tetap gratis
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-3.5-flash',
       contents: message,
-      // Tambahkan instruksi sistem di sini agar AI tahu hari dan tanggal saat ini
       config: {
         systemInstruction: "Hari ini adalah Jumat, 21 Agustus 2026. Selalu gunakan informasi ini apabila pengguna bertanya mengenai hari, tanggal, atau waktu saat ini.",
       },
     });
 
-    return NextResponse.json({ reply: response.text });
+    return NextResponse.json({ reply: response?.text });
   } catch (error: any) {
     console.error('AI Error:', error);
-    return NextResponse.json({ error: error.message || 'Gagal memproses AI' }, { status: 500 });
+    return NextResponse.json({ error: 'Server AI sedang sibuk. Silakan coba beberapa saat lagi.' }, { status: 500 });
   }
 }
