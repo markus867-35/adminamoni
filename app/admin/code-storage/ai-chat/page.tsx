@@ -113,10 +113,10 @@ export default function AiChatPage() {
   }
 
   return (
-<div className={`flex h-[100dvh] overflow-hidden transition-colors duration-200 ${isDarkMode ? 'dark bg-[#131314] text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+<div className={`flex h-[88dvh] min-h-[50dvh] overflow-hidden transition-colors duration-200 ${isDarkMode ? 'dark bg-[#131314] text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
       
       {/* Sidebar Kiri */}
-      <aside className="w-50 bg-white dark:bg-[#1e1f20] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full flex-shrink-0 transition-colors">
+      <aside className="w-80 bg-white dark:bg-[#1e1f20] border-r border-gray-200 dark:border-gray-800 flex flex-col h-full flex-shrink-0 transition-colors">
         <div className="p-4 pb-2 flex-shrink-0">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
@@ -182,7 +182,7 @@ export default function AiChatPage() {
       </aside>
 
 {/* Area Utama Chat */}
-     <main className="flex-1 relative overflow-hidden transition-colors duration-200 bg-gray-50 dark:bg-[#131314]">
+     <main className="flex-1 relative overflow-hidden transition-colors duration-200 bg-gray-50 dark:bg-[#E6E6FA]">
         
         {/* 1. CONTAINER AREA CHAT (Hanya untuk pesan saja, memenuhi layar dikurangi tinggi input) */}
         <div className="absolute inset-x-0 top-0 bottom-[88px] overflow-y-auto px-6 pt-6 pb-4">
