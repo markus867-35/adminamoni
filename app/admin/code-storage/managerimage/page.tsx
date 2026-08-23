@@ -234,7 +234,7 @@ export default function AdminImageManager() {
             return (
               <div 
                 key={folderName}
-                className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl shadow-sm space-y-4"
+                className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-5 rounded-xl shadow-sm space-y-4"
               >
                 {/* Header Folder & Menu Titik Tiga */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-800 pb-3">
@@ -276,7 +276,7 @@ export default function AdminImageManager() {
                     Tidak ada gambar yang cocok dengan pencarian di folder ini.
                   </div>
                 ) : (
-                  <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
                       {filteredFolderFiles.map((f) => {
                         const displayName = f.name.includes('/') ? f.name.split('/').slice(1).join('/') : f.name;
@@ -338,6 +338,11 @@ export default function AdminImageManager() {
           })
         )}
       </div>
+
+
+
+
+      
 
       {/* Modal / Pop-up Preview Gambar */}
       {isEditorOpen && (
@@ -407,7 +412,7 @@ function BlobThumbnail({ path, name }: { path: string; name: string }) {
 
   if (blobUrl) {
     return (
-      <div className="w-full h-28 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+      <div className="w-full h-45 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <img src={blobUrl} alt={name} className="w-full h-full object-cover" />
       </div>
     );
