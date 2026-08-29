@@ -171,15 +171,19 @@ export default function AdminCodeStorage() {
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const groupedFiles = filteredFiles.reduce((acc, file) => {
-    const parts = file.name.split('/');
+const groupedFiles = filteredFiles.reduce((acc, file) => {
+    // Pastikan pengecekan path aman dari backslash Windows (\)
+    const normalizedName = file.name.replace(/\\/g, '/');
+    const parts = normalizedName.split('/');
+    
     if (parts.length > 1) {
       const folderName = parts[0];
       if (!acc[folderName]) acc[folderName] = [];
       acc[folderName].push(file);
     } else {
-      if (!acc['File Satuan']) acc['File Satuan'] = [];
-      acc['File Satuan'].push(file);
+      // Kelompokkan file satuan agar tetap tampil di UI
+      if (!acc['File Satuan / Lainnya']) acc['File Satuan / Lainnya'] = [];
+      acc['File Satuan / Lainnya'].push(file);
     }
     return acc;
   }, {} as Record<string, any[]>);
