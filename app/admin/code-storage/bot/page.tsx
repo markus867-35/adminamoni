@@ -27,8 +27,10 @@ export default function AdminCodeStorage() {
     fetchFiles();
   }, []);
 
-  async function fetchFiles() {
-    const { data } = await supabase.from('code_files').select('*').order('created_at', { ascending: false });
+async function fetchFiles() {
+    const { data, error } = await supabase.from('code_files').select('*').order('created_at', { ascending: false });
+    console.log("RAW DATA DARI SUPABASE:", data); // <-- Lihat ini di Console F12
+    console.log("ERROR SUPABASE (jika ada):", error);
     if (data) setFiles(data);
   }
 
