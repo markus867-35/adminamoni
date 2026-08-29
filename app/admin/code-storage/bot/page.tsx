@@ -28,10 +28,38 @@ export default function AdminCodeStorage() {
   }, []);
 
 async function fetchFiles() {
-    const { data, error } = await supabase.from('code_files').select('*').order('created_at', { ascending: false });
-    console.log("RAW DATA DARI SUPABASE:", data); // <-- Lihat ini di Console F12
-    console.log("ERROR SUPABASE (jika ada):", error);
-    if (data) setFiles(data);
+    let allData: any[] = [];
+    let page = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+
+    // Loop otomatis untuk mengambil seluruh data melebihi batas 1000 baris Supabase
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('code_files')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+
+      if (error) {
+        console.error('Gagal memuat data:', error);
+        break;
+      }
+
+      if (data && data.length > 0) {
+        allData = [...allData, ...data];
+        if (data.length < pageSize) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    console.log("TOTAL DATA BERHASIL DIMUAT:", allData.length);
+    setFiles(allData);
   }
 
   async function handleUpload() {
