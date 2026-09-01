@@ -20,10 +20,16 @@ export default function AdminMasterPage() {
 
   useEffect(() => {
     fetchAdmins();
+
+    // Auto refresh data setiap 10 detik agar status online/offline di tabel ikut memperbarui diri secara real-time
+    const interval = setInterval(() => {
+      fetchAdmins();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchAdmins = async () => {
-    setLoading(true);
     const { data, error } = await supabase.from('admins').select('*').order('id', { ascending: true });
     if (error) {
       console.error('Gagal mengambil data admin:', error.message);
@@ -115,83 +121,90 @@ export default function AdminMasterPage() {
               </button>
             </div>
 
-   <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
-  <table className="w-full text-left border-collapse">
-    <thead>
-      <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40">
-        <th className="px-4 py-3 font-medium text-center border-r border-slate-200 dark:border-slate-800 w-12">No</th>
-        <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Nama Admin</th>
-        <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Email</th>
-        <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Status & Waktu Login</th>
-        <th className="px-4 py-3 font-medium text-center">Aksi</th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm text-slate-700 dark:text-slate-200">
-      {loading ? (
-        <tr>
-          <td colSpan={5} className="px-4 py-6 text-center text-xs text-slate-500">Memuat data admin...</td>
-        </tr>
-      ) : admins.length > 0 ? (
-        admins.map((adm, index) => (
-          <tr key={adm.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-            <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">
-              {index + 1}
-            </td>
-            <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">{adm.username || '-'}</td>
-            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">{adm.email || '-'}</td>
-            
-            <td className="px-4 py-3 align-middle border-r border-slate-200 dark:border-slate-800">
-              <div className="flex flex-col justify-center">
-                {adm.last_login ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 w-fit">
-                        Aktif
-                      </span>
-                      <span className="text-[11px] text-slate-400 mt-0.5">
-                        Login: {new Date(adm.last_login).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} ({new Date(adm.last_login).toLocaleDateString('id-ID')})
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 w-fit">
-                        Belum Login
-                      </span>
-                      <span className="text-[11px] text-slate-400 mt-0.5">Belum pernah login</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </td>
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-lg">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40">
+                    <th className="px-4 py-3 font-medium text-center border-r border-slate-200 dark:border-slate-800 w-12">No</th>
+                    <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Nama Admin</th>
+                    <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Email</th>
+                    <th className="px-4 py-3 font-medium border-r border-slate-200 dark:border-slate-800">Status & Waktu Aktif</th>
+                    <th className="px-4 py-3 font-medium text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm text-slate-700 dark:text-slate-200">
+                  {loading && admins.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-6 text-center text-xs text-slate-500">Memuat data admin...</td>
+                    </tr>
+                  ) : admins.length > 0 ? (
+                    admins.map((adm, index) => {
+                      // Cek apakah admin online (last_seen kurang dari 60 detik yang lalu)
+                      const isOnline = adm.last_seen && (new Date().getTime() - new Date(adm.last_seen).getTime() < 60000);
 
-            <td className="px-4 py-3 text-center align-middle">
-              <button 
-                onClick={() => handleDeleteAdmin(adm.id, adm.username)}
-                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition cursor-pointer inline-flex items-center justify-center"
-                title="Hapus Admin"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan={5} className="px-4 py-6 text-center text-xs text-slate-500">Tidak ada data admin ditemukan.</td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
+                      return (
+                        <tr key={adm.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                          <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">
+                            {index + 1}
+                          </td>
+                          <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">{adm.username || '-'}</td>
+                          <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">{adm.email || '-'}</td>
+                          
+                          <td className="px-4 py-3 align-middle border-r border-slate-200 dark:border-slate-800">
+                            <div className="flex flex-col justify-center">
+                              {isOnline ? (
+                                <div className="flex items-center space-x-2">
+                                  <span className="relative flex h-2 w-2 shrink-0">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 w-fit">
+                                      Online
+                                    </span>
+                                    <span className="text-[11px] text-slate-400 mt-0.5">Aktif sekarang</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <span className="relative flex h-2 w-2 shrink-0">
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
+                                  </span>
+                                  <div className="flex flex-col">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 w-fit">
+                                      Offline
+                                    </span>
+                                    <span className="text-[11px] text-slate-400 mt-0.5">
+                                      {adm.last_seen 
+                                        ? `Terakhir: ${new Date(adm.last_seen).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` 
+                                        : 'Belum pernah aktif'}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3 text-center align-middle">
+                            <button 
+                              onClick={() => handleDeleteAdmin(adm.id, adm.username)}
+                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition cursor-pointer inline-flex items-center justify-center"
+                              title="Hapus Admin"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-6 text-center text-xs text-slate-500">Tidak ada data admin ditemukan.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded shadow-sm h-fit">

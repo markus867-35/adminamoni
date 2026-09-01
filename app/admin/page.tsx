@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { 
   ArrowDownToLine, 
@@ -17,17 +17,44 @@ import {
   Clock 
 } from 'lucide-react';
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
+  useEffect(() => {
     const isLoggedIn = localStorage.getItem('admin_logged_in');
+    const loggedInEmail = localStorage.getItem('admin_email');
+
     if (!isLoggedIn) {
       router.push('/login');
+      return;
     } else {
       setLoading(false); // Buka loading setelah dipastikan login
     }
+
+    // Fungsi Heartbeat untuk memperbarui status online (last_seen) secara berkala
+    const updateLastSeen = async () => {
+      if (!loggedInEmail) return;
+      await supabase
+        .from('admins')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('email', loggedInEmail);
+    };
+
+    // Kirim sinyal pertama saat dashboard dibuka
+    updateLastSeen();
+
+    // Kirim sinyal setiap 30 detik selama halaman dashboard aktif
+    const interval = setInterval(() => {
+      updateLastSeen();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   if (loading) {
@@ -37,6 +64,7 @@ export default function Dashboard() {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
       {/* Header Halaman */}
