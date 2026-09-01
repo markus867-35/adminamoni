@@ -134,18 +134,19 @@ export default function AdminNotepad() {
   };
 
   return (
-    <div className="min-h-screen p-6 md:p-10 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto">
+    // Menggunakan w-full dan px-4/px-6 agar melebar penuh ke samping tanpa batas max-w
+    <div className="min-h-screen w-full px-4 md:px-8 py-6 transition-colors duration-300">
+      <div className="w-full">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Notepad</h1>
           <p className="text-gray-500 dark:text-gray-400">Kelola catatan, ide, atau pengumuman penting di sini.</p>
         </div>
 
-        {/* Mengubah grid menjadi proporsi 5 untuk form dan 7 untuk list (atau seimbang) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Form Section (Lebar diperbesar menjadi col-span-5) */}
-          <div className="lg:col-span-5 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
+        {/* Layout Grid Full */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+          {/* Form Section */}
+          <div className="lg:col-span-4 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
               {editingId ? 'Edit Catatan' : 'Buat Catatan Baru'}
             </h2>
@@ -190,8 +191,8 @@ export default function AdminNotepad() {
             </form>
           </div>
 
-          {/* List Section (Lebar col-span-7 dengan grid ke samping) */}
-          <div className="lg:col-span-7">
+          {/* List Section */}
+          <div className="lg:col-span-8">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Daftar Catatan</h2>
             
             {loading ? (
@@ -201,7 +202,7 @@ export default function AdminNotepad() {
                 Belum ada catatan yang tersimpan.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {notes.map((note) => (
                   <div
                     key={note.id}
