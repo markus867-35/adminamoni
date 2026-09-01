@@ -24,6 +24,9 @@ export default function AdminNotepad() {
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // State untuk Pop-up Modal Lihat
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+
   useEffect(() => {
     fetchNotes();
   }, []);
@@ -134,8 +137,7 @@ export default function AdminNotepad() {
   };
 
   return (
-    // Menggunakan w-full dan px-4/px-6 agar melebar penuh ke samping tanpa batas max-w
-    <div className="min-h-screen w-full px-4 md:px-8 py-6 transition-colors duration-300">
+    <div className="min-h-screen w-full px-4 md:px-8 py-6 transition-colors duration-300 relative">
       <div className="w-full">
         {/* Header */}
         <div className="mb-6">
@@ -224,16 +226,23 @@ export default function AdminNotepad() {
                       </p>
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-3 border-t border-gray-50 dark:border-gray-800">
+                    {/* Tombol Aksi: Edit, Lihat, Hapus */}
+                    <div className="flex justify-end gap-1.5 pt-3 border-t border-gray-50 dark:border-gray-800">
                       <button
                         onClick={() => handleEdit(note)}
-                        className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-medium transition"
+                        className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-medium transition"
                       >
                         Edit
                       </button>
                       <button
+                        onClick={() => setSelectedNote(note)}
+                        className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium transition"
+                      >
+                        Lihat
+                      </button>
+                      <button
                         onClick={() => handleDelete(note.id)}
-                        className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg text-xs font-medium transition"
+                        className="px-2.5 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg text-xs font-medium transition"
                       >
                         Hapus
                       </button>
@@ -245,6 +254,51 @@ export default function AdminNotepad() {
           </div>
         </div>
       </div>
+
+      {/* Pop-up Modal Detail Catatan */}
+      {selectedNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+            {/* Header Modal */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 line-clamp-1">
+                {selectedNote.title}
+              </h3>
+              <button
+                onClick={() => setSelectedNote(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition text-lg font-bold px-2 py-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body Modal */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              <div className="mb-3 text-xs text-gray-400 dark:text-gray-500">
+                Dibuat pada:{' '}
+                {new Date(selectedNote.created_at).toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
+              <div className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap leading-relaxed bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                {selectedNote.content}
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="flex justify-end px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+              <button
+                onClick={() => setSelectedNote(null)}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl transition"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
