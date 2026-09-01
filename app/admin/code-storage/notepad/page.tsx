@@ -136,6 +136,27 @@ export default function AdminNotepad() {
     setEditingId(null);
   };
 
+  // Fungsi untuk mendeteksi kode HEX dan merender kotak warna di sampingnya
+  const renderContentWithColors = (text: string) => {
+    const hexRegex = /(#[0-9A-Fa-f]{3,6}\b)/g;
+    const parts = text.split(hexRegex);
+
+    return parts.map((part, index) => {
+      if (hexRegex.test(part)) {
+        return (
+          <span key={index} className="inline-flex items-center gap-1.5 align-middle mx-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+            <span
+              className="w-3.5 h-3.5 rounded-sm inline-block shadow-sm shrink-0 border border-black/10 dark:border-white/10"
+              style={{ backgroundColor: part }}
+            />
+            <span className="font-mono text-xs font-semibold">{part}</span>
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className="min-h-screen w-full px-4 md:px-8 py-6 transition-colors duration-300 relative">
       <div className="w-full">
@@ -169,7 +190,7 @@ export default function AdminNotepad() {
                   rows={6}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Tulis isi catatan di sini..."
+                  placeholder="Tulis isi catatan (misal: #222d3d)..."
                   className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm resize-none transition-colors"
                 />
               </div>
@@ -221,9 +242,9 @@ export default function AdminNotepad() {
                           })}
                         </span>
                       </div>
-                      <p className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
-                        {note.content}
-                      </p>
+                      <div className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
+                        {renderContentWithColors(note.content)}
+                      </div>
                     </div>
 
                     {/* Tombol Aksi: Edit, Lihat, Hapus */}
@@ -283,7 +304,7 @@ export default function AdminNotepad() {
                 })}
               </div>
               <div className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap leading-relaxed bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                {selectedNote.content}
+                {renderContentWithColors(selectedNote.content)}
               </div>
             </div>
 
