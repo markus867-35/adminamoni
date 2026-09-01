@@ -25,14 +25,29 @@ export default function ProfilePage() {
   const [notifDepoWd, setNotifDepoWd] = useState(true);
   const [notifTogel, setNotifTogel] = useState(true);
 
-  // Ambil data admin saat halaman pertama kali dimuat
+// Ambil data admin berdasarkan session yang aktif di localStorage
   useEffect(() => {
     fetchAdminProfile();
   }, []);
 
   const fetchAdminProfile = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('admins').select('*').limit(1).single();
+    
+    // 1. Ambil email admin yang sedang login dari localStorage
+    const loggedInEmail = localStorage.getItem('admin_email');
+
+    if (!loggedInEmail) {
+      // Jika tidak ada data login, lempar kembali ke halaman login
+      router.push('/login');
+      return;
+    }
+
+    // 2. Ambil data admin dari Supabase berdasarkan email yang sedang login
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('email', loggedInEmail)
+      .maybeSingle();
 
     if (error) {
       console.error('Gagal memuat profil:', error.message);
@@ -41,7 +56,11 @@ export default function ProfilePage() {
       setName(data.username || '');
       setEmail(data.email || '');
       setAvatarUrl(data.avatar_url || null);
+    } else {
+      // Jika data admin tidak ditemukan di database
+      router.push('/login');
     }
+    
     setLoading(false);
   };
 
