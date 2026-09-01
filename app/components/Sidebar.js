@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Link from 'next/link';
 import { 
   LayoutDashboard, 
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen }) {
+  const [adminName, setAdminName] = useState('Admin');
   // State untuk mengontrol menu mana saja yang sedang terbuka
   const [openMenus, setOpenMenus] = useState({
     transaksi: false,
@@ -37,6 +38,13 @@ export default function Sidebar({ isOpen }) {
     }));
   };
 
+useEffect(() => {
+    // Mengambil nama admin yang disimpan saat login
+    const name = localStorage.getItem('admin_name');
+    if (name) {
+      setAdminName(name);
+    }
+  }, []);
   return (
     <aside className={`w-64 bg-[#1b2531] text-slate-300 flex flex-col justify-between shrink-0 select-none sticky top-0 h-screen border-r border-slate-800 transition-all duration-300 ${
       isOpen ? 'flex' : 'hidden'
@@ -288,10 +296,10 @@ export default function Sidebar({ isOpen }) {
         </nav>
       </div>
 
-      {/* Footer Sidebar (Login Sebagai) */}
+{/* Footer Sidebar (Login Sebagai) */}
       <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0">
         <p className="tracking-wider text-[11px] text-slate-400">Login sebagai:</p>
-        <p className="font-bold text-white tracking-wide mt-0.5">Admin</p>
+        <p className="font-bold text-white tracking-wide mt-0.5 truncate">{adminName}</p>
       </div>
     </aside>
   );

@@ -21,17 +21,13 @@ export default function Dashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      } else {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
+ useEffect(() => {
+    const isLoggedIn = localStorage.getItem('admin_logged_in');
+    if (!isLoggedIn) {
+      router.push('/login');
+    } else {
+      setLoading(false); // Buka loading setelah dipastikan login
+    }
   }, [router]);
 
   if (loading) {

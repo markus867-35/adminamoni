@@ -6,10 +6,11 @@ import { User, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import Swal from 'sweetalert2';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,11 +39,11 @@ const handleLogin = async (e) => {
     } else {
       localStorage.setItem('admin_logged_in', 'true');
       localStorage.setItem('admin_email', data.email);
+      localStorage.setItem('admin_name', data.username);
 
       Swal.fire({
         icon: 'success',
         title: 'Login Berhasil!',
-        text: 'Selamat datang kembali, ' + data.username,
         timer: 1200,
         showConfirmButton: false,
       });
@@ -54,19 +55,20 @@ const handleLogin = async (e) => {
     }
   };
 
-  return (
+ return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 overflow-hidden px-4">
       <div 
         className="absolute inset-0 bg-cover bg-center filter blur-md opacity-40 scale-105" 
         style={{ backgroundImage: `url('https://ik.imagekit.io/j72i7hsy1/login1.jpg')` }}
       ></div>
 
-      <div className="relative z-10 w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      {/* Ubah max-w-4xl menjadi max-w-5xl dan berikan tinggi agar gambar sisi kiri leluasa */}
+      <div className="relative z-10 w-full max-w-5xl h-[540px] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         
         {/* Sisi Kiri: Gambar & Branding */}
         <div className="relative bg-slate-900 hidden md:flex flex-col justify-between p-8 text-white overflow-hidden">
           <div 
-            className="absolute inset-0 bg-cover bg-center opacity-70"
+            className="absolute inset-0 bg-cover bg-center opacity-70 scale-105"
             style={{ backgroundImage: `url('https://ik.imagekit.io/j72i7hsy1/login1.jpg')` }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -82,7 +84,7 @@ const handleLogin = async (e) => {
         </div>
 
         {/* Sisi Kanan: Form Login */}
-        <div className="p-8 sm:p-10 flex flex-col justify-center bg-white text-slate-900">
+        <div className="p-8 sm:p-10 flex flex-col justify-center bg-white text-slate-900 h-full overflow-y-auto">
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold tracking-tight text-slate-900">Login Admin</h2>
             <p className="text-xs text-slate-500 mt-1">Silakan masukkan akun Anda</p>
