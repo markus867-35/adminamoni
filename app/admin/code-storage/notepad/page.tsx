@@ -190,7 +190,7 @@ export default function AdminNotepad() {
                   rows={6}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Tulis isi catatan (misal: #222d3d)..."
+                  placeholder="Tulis isi catatan "
                   className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm resize-none transition-colors"
                 />
               </div>
