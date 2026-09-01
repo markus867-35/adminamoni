@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { User, Key, ArrowLeft, Save, Upload, Trash2 } from 'lucide-react';
@@ -12,6 +13,7 @@ const supabase = createClient(
 );
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [adminId, setAdminId] = useState<string | null>(null);
 
@@ -262,10 +264,14 @@ export default function ProfilePage() {
                   <span>Ubah Password</span>
                 </Link>
 
-                <Link href="/" className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer">
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Kembali</span>
-                </Link>
+<button 
+  type="button" 
+  onClick={() => router.push('/admin')}
+  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer"
+>
+  <ArrowLeft className="w-3.5 h-3.5" />
+  <span>Kembali</span>
+</button>
               </div>
             </div>
 
