@@ -81,7 +81,7 @@ export default function ChangePasswordPage() {
   return (
     <form onSubmit={handleUpdatePassword} className="flex flex-col min-h-[calc(100vh-120px)] justify-between space-y-6">
       {/* Bagian Atas: Konten Utama */}
-      <div className="space-y-6">
+      <div className=" max-w-xl w-full space-y-6">
         {/* Header Halaman & Breadcrumb */}
         <div>
           <h1 className="text-2xl font-normal text-slate-800 dark:text-white">Ubah Password</h1>
