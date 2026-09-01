@@ -141,39 +141,39 @@ export default function AdminNotepad() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-10">
+    <div className="min-h-screen p-6 md:p-10 transition-colors duration-300">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Notepad</h1>
-          <p className="text-gray-500">Kelola catatan, ide, atau pengumuman penting di sini.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Notepad</h1>
+          <p className="text-gray-500 dark:text-gray-400">Kelola catatan, ide, atau pengumuman penting di sini.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form Section */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
               {editingId ? 'Edit Catatan' : 'Buat Catatan Baru'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Judul</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Judul</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Masukkan judul catatan..."
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 text-sm"
+                  className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Konten / Isi</label>
+                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Konten / Isi</label>
                 <textarea
                   rows={5}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Tulis isi catatan di sini..."
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 text-sm resize-none"
+                  className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm resize-none transition-colors"
                 />
               </div>
               <div className="flex gap-2">
@@ -187,7 +187,7 @@ export default function AdminNotepad() {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded-lg transition text-sm"
+                    className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium px-4 py-2 rounded-lg transition text-sm"
                   >
                     Batal
                   </button>
@@ -198,12 +198,12 @@ export default function AdminNotepad() {
 
           {/* List Section */}
           <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Daftar Catatan</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Daftar Catatan</h2>
             
             {loading ? (
-              <div className="text-center py-10 text-gray-500">Memuat catatan...</div>
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">Memuat catatan...</div>
             ) : notes.length === 0 ? (
-              <div className="bg-white p-8 rounded-xl text-center border border-gray-100 text-gray-400">
+              <div className="bg-white dark:bg-gray-900 p-8 rounded-xl text-center border border-gray-100 dark:border-gray-800 text-gray-400 transition-colors">
                 Belum ada catatan yang tersimpan.
               </div>
             ) : (
@@ -211,12 +211,12 @@ export default function AdminNotepad() {
                 {notes.map((note) => (
                   <div
                     key={note.id}
-                    className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition"
+                    className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between hover:shadow-md transition-colors"
                   >
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{note.title}</h3>
-                        <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg line-clamp-1">{note.title}</h3>
+                        <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">
                           {new Date(note.created_at).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
@@ -224,21 +224,21 @@ export default function AdminNotepad() {
                           })}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
+                      <p className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
                         {note.content}
                       </p>
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-3 border-t border-gray-50">
+                    <div className="flex justify-end gap-2 pt-3 border-t border-gray-50 dark:border-gray-800">
                       <button
                         onClick={() => handleEdit(note)}
-                        className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-medium transition"
+                        className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-medium transition"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(note.id)}
-                        className="px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-xs font-medium transition"
+                        className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg text-xs font-medium transition"
                       >
                         Hapus
                       </button>
