@@ -24,7 +24,6 @@ export default function AdminNotepad() {
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Ambil data catatan saat komponen dimuat
   useEffect(() => {
     fetchNotes();
   }, []);
@@ -44,7 +43,6 @@ export default function AdminNotepad() {
     setLoading(false);
   };
 
-  // Simpan atau Update Catatan
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
@@ -53,7 +51,6 @@ export default function AdminNotepad() {
     }
 
     if (editingId) {
-      // Proses Update
       const { error } = await supabase
         .from('notes')
         .update({ title, content })
@@ -73,7 +70,6 @@ export default function AdminNotepad() {
         fetchNotes();
       }
     } else {
-      // Proses Tambah Baru
       const { error } = await supabase
         .from('notes')
         .insert([{ title, content }]);
@@ -94,7 +90,6 @@ export default function AdminNotepad() {
     }
   };
 
-  // Edit Catatan (pindahkan data ke form)
   const handleEdit = (note: Note) => {
     setEditingId(note.id);
     setTitle(note.title);
@@ -102,7 +97,6 @@ export default function AdminNotepad() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Hapus Catatan
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
       title: 'Apakah Anda yakin?',
@@ -133,7 +127,6 @@ export default function AdminNotepad() {
     }
   };
 
-  // Reset Form
   const resetForm = () => {
     setTitle('');
     setContent('');
@@ -142,16 +135,17 @@ export default function AdminNotepad() {
 
   return (
     <div className="min-h-screen p-6 md:p-10 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Notepad</h1>
           <p className="text-gray-500 dark:text-gray-400">Kelola catatan, ide, atau pengumuman penting di sini.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
+        {/* Mengubah grid menjadi proporsi 5 untuk form dan 7 untuk list (atau seimbang) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Form Section (Lebar diperbesar menjadi col-span-5) */}
+          <div className="lg:col-span-5 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
               {editingId ? 'Edit Catatan' : 'Buat Catatan Baru'}
             </h2>
@@ -169,7 +163,7 @@ export default function AdminNotepad() {
               <div>
                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Konten / Isi</label>
                 <textarea
-                  rows={5}
+                  rows={6}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Tulis isi catatan di sini..."
@@ -196,8 +190,8 @@ export default function AdminNotepad() {
             </form>
           </div>
 
-          {/* List Section */}
-          <div className="lg:col-span-2">
+          {/* List Section (Lebar col-span-7 dengan grid ke samping) */}
+          <div className="lg:col-span-7">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Daftar Catatan</h2>
             
             {loading ? (
@@ -207,7 +201,7 @@ export default function AdminNotepad() {
                 Belum ada catatan yang tersimpan.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {notes.map((note) => (
                   <div
                     key={note.id}
