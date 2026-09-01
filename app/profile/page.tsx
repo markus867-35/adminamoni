@@ -16,6 +16,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [adminId, setAdminId] = useState<string | null>(null);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [previewImageSrc, setPreviewImageSrc] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imagePositionY, setImagePositionY] = useState(50);
+  const [imagePositionX, setImagePositionX] = useState(50); // <-- TAMBAHKAN INI
 
   // State Form Profil
   const [name, setName] = useState('');
@@ -64,54 +69,99 @@ export default function ProfilePage() {
     setLoading(false);
   };
 
-  // Fungsi Upload / Ganti Foto Profil
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!e.target.files || e.target.files.length === 0) return;
-      const file = e.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${adminId}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      setUploading(true);
-
-      // Upload ke Supabase Storage (Pastikan bucket bernama 'avatars' sudah dibuat)
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Ambil Public URL dari file yang di-upload
-      const { data: publicUrlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const newAvatarUrl = publicUrlData.publicUrl;
-
-      // Update langsung ke database tabel admins
-      const { error: updateError } = await supabase
-        .from('admins')
-        .update({ avatar_url: newAvatarUrl })
-        .eq('id', adminId);
-
-      if (updateError) throw updateError;
-
-      setAvatarUrl(newAvatarUrl);
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: 'Foto profil berhasil diperbarui.',
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error: any) {
-      Swal.fire('Gagal', error.message || 'Terjadi kesalahan saat mengunggah foto.', 'error');
-    } finally {
-      setUploading(false);
-    }
+// 1. Saat user pilih file, jangan langsung upload, tapi tampilkan modal preview dulu
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setSelectedImageFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreviewImageSrc(reader.result as string);
+      setShowCropModal(true); // Buka modal penyesuaian
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input value supaya bisa pilih file yang sama jika dibatalkan
+    e.target.value = '';
   };
 
+  // 2. Fungsi proses crop/penyesuaian posisi menggunakan Canvas sebelum di-upload ke Supabase
+const handleConfirmUpload = async () => {
+  if (!selectedImageFile || !previewImageSrc) return;
+
+  try {
+    setUploading(true);
+    setShowCropModal(false);
+
+    const img = document.createElement('img');
+    img.src = previewImageSrc;
+    
+    await new Promise((resolve) => { img.onload = resolve; });
+
+    const canvas = document.createElement('canvas');
+    const size = 400; // Resolusi hasil crop (400x400 px)
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) throw new Error('Gagal memproses gambar.');
+
+    const scale = Math.max(size / img.width, size / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    
+    // PERUBAHAN DI SINI: Menggunakan X dan Y dari slider
+    let x = ((size - w) * imagePositionX) / 100; 
+    let y = ((size - h) * imagePositionY) / 100;
+
+    ctx.drawImage(img, x, y, w, h);
+
+    const blob: Blob = await new Promise((resolve) => 
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.9)
+    );
+
+    const fileExt = 'jpg';
+    const fileName = `${adminId}-${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, blob);
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const newAvatarUrl = publicUrlData.publicUrl;
+
+    const { error: updateError } = await supabase
+      .from('admins')
+      .update({ avatar_url: newAvatarUrl })
+      .eq('id', adminId);
+
+    if (updateError) throw updateError;
+
+    setAvatarUrl(newAvatarUrl);
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Foto profil berhasil disesuaikan dan diperbarui.',
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (error: any) {
+    Swal.fire('Gagal', error.message || 'Terjadi kesalahan saat mengunggah foto.', 'error');
+  } finally {
+    setUploading(false);
+    setSelectedImageFile(null);
+    setPreviewImageSrc(null);
+    setImagePositionX(50); // Reset ke tengah
+    setImagePositionY(50); // Reset ke tengah
+  }
+};
   // Fungsi Hapus Foto Profil
   const handleDeleteAvatar = async () => {
     if (!avatarUrl) return;
@@ -319,13 +369,13 @@ export default function ProfilePage() {
                 <label className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded text-center cursor-pointer flex items-center justify-center space-x-1.5 transition">
                   <Upload className="w-3.5 h-3.5" />
                   <span>{uploading ? 'Mengunggah...' : 'Ganti Foto'}</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageUpload} 
-                    disabled={uploading} 
-                    className="hidden" 
-                  />
+<input 
+  type="file" 
+  accept="image/*" 
+  onChange={handleFileSelect} // Ubah ke fungsi handleFileSelect
+  disabled={uploading} 
+  className="hidden" 
+/>
                 </label>
 
                 {avatarUrl && (
@@ -344,11 +394,90 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Pengaturan Posisi Foto (Crop Sederhana) */}
+{/* Modal Pengaturan Posisi Foto (Geser Atas-Bawah & Kiri-Kanan) */}
+{showCropModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-xl">
+      <h3 className="text-sm font-semibold text-slate-800 dark:text-white text-center">
+        Sesuaikan Posisi Foto Profil
+      </h3>
+
+      {/* Preview Lingkaran */}
+      <div className="flex justify-center">
+        <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500 shadow-md bg-slate-100">
+          {previewImageSrc && (
+            <img 
+              src={previewImageSrc} 
+              alt="Crop Preview" 
+              className="absolute w-full h-full object-cover"
+              // Mengatur posisi X dan Y secara bersamaan
+              style={{ objectPosition: `${imagePositionX}% ${imagePositionY}%` }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Slider Geser Kiri - Kanan */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>Geser Kiri / Kanan:</span>
+          <span>{imagePositionX}%</span>
+        </div>
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          value={imagePositionX} 
+          onChange={(e) => setImagePositionX(Number(e.target.value))}
+          className="w-full accent-blue-600 cursor-pointer"
+        />
+      </div>
+
+      {/* Slider Geser Atas - Bawah */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>Geser Atas / Bawah:</span>
+          <span>{imagePositionY}%</span>
+        </div>
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          value={imagePositionY} 
+          onChange={(e) => setImagePositionY(Number(e.target.value))}
+          className="w-full accent-blue-600 cursor-pointer"
+        />
+      </div>
+
+      {/* Tombol Aksi Modal */}
+      <div className="flex space-x-2 pt-2">
+        <button 
+          type="button"
+          onClick={() => setShowCropModal(false)}
+          className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded text-xs font-medium transition"
+        >
+          Batal
+        </button>
+        <button 
+          type="button"
+          onClick={handleConfirmUpload}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-xs font-medium transition"
+        >
+          Simpan & Upload
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       
       {/* Bagian Bawah: Footer Copyright */}
       <div className="text-center text-xs text-slate-500 dark:text-slate-400 py-4 border-t border-slate-200 dark:border-slate-800 mt-auto">
         Copyright &copy; OneLiveGaming 2026
       </div>
     </form>
+
+    
   );
 }
