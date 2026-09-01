@@ -147,10 +147,33 @@ export default function AdminMasterPage() {
                           <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">
                             {index + 1}
                           </td>
-                         <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">
+<td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">
   <div className="flex items-center space-x-3">
-    {/* Avatar / Foto Profil */}
-    <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-600">
+    {/* Avatar / Foto Profil yang bisa diklik */}
+    <div 
+      onClick={() => {
+        Swal.fire({
+          title: `<span style="font-size: 16px;">${adm.username}</span>`,
+          html: `
+            <div style="display: flex; justify-content: center; align-items: center;">
+              <img 
+                src="${adm.avatar_url || 'https://via.placeholder.com/150'}" 
+                alt="${adm.username}" 
+                style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; border: 4px solid #cbd5e1;" 
+              />
+            </div>
+            <p style="margin-top: 15px; font-size: 13px; color: #64748b;">Email: ${adm.email || '-'}</p>
+          `,
+          showCloseButton: true,
+          showConfirmButton: false,
+          width: '350px',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b',
+        });
+      }}
+      className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-600 cursor-pointer hover:opacity-80 transition hover:ring-2 hover:ring-blue-500"
+      title="Klik untuk melihat foto profil"
+    >
       {adm.avatar_url ? (
         <img 
           src={adm.avatar_url} 
