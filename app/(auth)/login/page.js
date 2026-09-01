@@ -19,41 +19,40 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setErrorMsg('');
+const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
 
-  // Cek data ke tabel kustom 'admins'
-  const { data, error } = await supabase
-    .from('admins')
-    .select('*')
-    .eq('email', email)
-    .eq('password', password)
-    .single();
+    // Menggunakan .maybeSingle() agar tidak memunculkan error 406 jika data tidak ditemukan
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('email', email)
+      .eq('password', password)
+      .maybeSingle();
 
-  if (error || !data) {
-    setErrorMsg('Email atau password salah!');
-    setLoading(false);
-  } else {
-    // Jika login berhasil, simpan status sesi sederhana di localStorage (atau langsung arahkan ke dashboard)
-    localStorage.setItem('admin_logged_in', 'true');
-    localStorage.setItem('admin_email', data.email);
+    if (error || !data) {
+      setErrorMsg('Email atau password salah!');
+      setLoading(false);
+    } else {
+      localStorage.setItem('admin_logged_in', 'true');
+      localStorage.setItem('admin_email', data.email);
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Login Berhasil!',
-      text: 'Selamat datang kembali, ' + data.username,
-      timer: 1200,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil!',
+        text: 'Selamat datang kembali, ' + data.username,
+        timer: 1200,
+        showConfirmButton: false,
+      });
 
-    setTimeout(() => {
-      router.push('/admin');
-      router.refresh();
-    }, 1200);
-  }
-};
+      setTimeout(() => {
+        router.push('/admin');
+        router.refresh();
+      }, 1200);
+    }
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 overflow-hidden px-4">

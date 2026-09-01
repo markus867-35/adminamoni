@@ -214,7 +214,7 @@ export default function ProfilePage() {
     <span>Ubah Password</span>
   </Link>
 
-  <Link href="/admin" className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer">
+  <Link href="/" className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer">
     <ArrowLeft className="w-3.5 h-3.5" />
     <span>Kembali</span>
   </Link>
