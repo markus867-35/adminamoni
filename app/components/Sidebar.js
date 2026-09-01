@@ -16,6 +16,9 @@ import {
   Database,
   Settings,
   Wrench,
+  Server,
+  Briefcase,
+  FolderGit2,
   ChevronUp
 } from 'lucide-react';
 
@@ -27,7 +30,7 @@ export default function Sidebar({ isOpen }) {
     member: false,
     promosi: false,
     togel: false,
-    Laporan: false,PengaturanProvider: false,PengaturanPeralatan:false,storage:false,
+    Laporan: false,PengaturanProvider: false,PengaturanPeralatan:false,storage:false,master:false,
     PengaturanBank: false,
   });
 
@@ -275,10 +278,10 @@ useEffect(() => {
     onClick={() => toggleMenu('storage')} 
     className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
   >
-    <div className="flex items-center">
-      <Database className="w-4 h-4 mr-3 text-slate-400" /> {/* Ikon diganti ke Database */}
-      <span>storage</span>
-    </div>
+<div className="flex items-center">
+    <Database className="w-4 h-4 mr-3 text-slate-400" />
+    <span>Storage</span>
+  </div>
     {openMenus.storage ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
   </button>
 
@@ -289,6 +292,30 @@ useEffect(() => {
       <Link href="/admin/code-storage/managerimage" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Manager Image</Link>
       <Link href="/admin/code-storage/ai-chat" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Gemini</Link>
       <Link href="/admin/code-storage/notepad" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Notepad</Link>
+    </div>
+  )}
+</div>
+
+
+
+
+
+<div>
+  <button 
+    onClick={() => toggleMenu('master')} 
+    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+  >
+<div className="flex items-center">
+    <Server className="w-4 h-4 mr-3 text-slate-400" />
+    <span>Master</span>
+  </div>
+    {openMenus.master ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+  </button>
+
+  {openMenus.master && (
+    <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+      <Link href="/master/operator" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Operator</span></Link>
+
     </div>
   )}
 </div>

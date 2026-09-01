@@ -9,8 +9,6 @@ import Swal from 'sweetalert2';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
-console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,12 +18,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-const handleLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
 
-    // Menggunakan .maybeSingle() agar tidak memunculkan error 406 jika data tidak ditemukan
+    // 1. Cek data admin berdasarkan email dan password
     const { data, error } = await supabase
       .from('admins')
       .select('*')
@@ -37,6 +35,13 @@ const handleLogin = async (e) => {
       setErrorMsg('Email atau password salah!');
       setLoading(false);
     } else {
+      // 2. Update waktu last_login ke database saat login berhasil
+      await supabase
+        .from('admins')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', data.id);
+
+      // 3. Simpan sesi ke localStorage
       localStorage.setItem('admin_logged_in', 'true');
       localStorage.setItem('admin_email', data.email);
       localStorage.setItem('admin_name', data.username);
@@ -55,14 +60,13 @@ const handleLogin = async (e) => {
     }
   };
 
- return (
+  return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 overflow-hidden px-4">
       <div 
         className="absolute inset-0 bg-cover bg-center filter blur-md opacity-40 scale-105" 
         style={{ backgroundImage: `url('https://ik.imagekit.io/j72i7hsy1/login1.jpg')` }}
       ></div>
 
-      {/* Ubah max-w-4xl menjadi max-w-5xl dan berikan tinggi agar gambar sisi kiri leluasa */}
       <div className="relative z-10 w-full max-w-5xl h-[540px] bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         
         {/* Sisi Kiri: Gambar & Branding */}
