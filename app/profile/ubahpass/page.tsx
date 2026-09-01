@@ -138,7 +138,7 @@ export default function ChangePasswordPage() {
               </button>
 
               <Link 
-                href="/admin/profile" 
+                href="/profile" 
                 className="bg-amber-400 hover:bg-amber-500 text-slate-900 px-4 py-2 rounded text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
