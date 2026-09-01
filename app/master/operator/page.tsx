@@ -147,7 +147,27 @@ export default function AdminMasterPage() {
                           <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">
                             {index + 1}
                           </td>
-                          <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">{adm.username || '-'}</td>
+                         <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">
+  <div className="flex items-center space-x-3">
+    {/* Avatar / Foto Profil */}
+    <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-600">
+      {adm.avatar_url ? (
+        <img 
+          src={adm.avatar_url} 
+          alt={adm.username} 
+          className="w-full h-full object-cover" 
+        />
+      ) : (
+        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">
+          {adm.username ? adm.username.charAt(0) : 'A'}
+        </span>
+      )}
+    </div>
+    
+    {/* Nama Admin */}
+    <span>{adm.username || '-'}</span>
+  </div>
+</td>
                           <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">{adm.email || '-'}</td>
                           
                           <td className="px-4 py-3 align-middle border-r border-slate-200 dark:border-slate-800">
