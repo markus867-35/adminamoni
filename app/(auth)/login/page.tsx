@@ -110,7 +110,7 @@ console.log("Nilai is_2fa_enabled saat ini:", data.is_2fa_enabled);
 
     await finalizeLogin(adminData);
   } catch (err) {
-    setErrorMsg(err.message);
+    setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan yang tidak diketahui');
     setLoading(false);
   }
 };
