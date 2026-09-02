@@ -158,123 +158,128 @@ export default function AdminNotepad() {
   };
 
   return (
-    <div className="min-h-screen w-full px-4 md:px-8 py-6 transition-colors duration-300 relative">
-      <div className="w-full">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Notepad</h1>
-          <p className="text-gray-500 dark:text-gray-400">Kelola catatan, ide, atau pengumuman penting di sini.</p>
-        </div>
+<div className="h-[calc(100vh-100px)] w-full px-4 md:px-8 py-6 flex flex-col transition-colors duration-300 relative overflow-hidden">
+  <div className="w-full flex-1 flex flex-col min-h-0">
+    {/* Header */}
+    <div className="mb-6 shrink-0">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Notepad</h1>
+      <p className="text-gray-500 dark:text-gray-400">Kelola catatan, ide, atau pengumuman penting di sini.</p>
+    </div>
 
-        {/* Layout Grid Full */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Form Section */}
-          <div className="lg:col-span-4 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-              {editingId ? 'Edit Catatan' : 'Buat Catatan Baru'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Judul</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Masukkan judul catatan..."
-                  className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Konten / Isi</label>
-                <textarea
-                  rows={6}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Tulis isi catatan "
-                  className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm resize-none transition-colors"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition text-sm shadow-sm"
-                >
-                  {editingId ? 'Perbarui' : 'Simpan'}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium px-4 py-2 rounded-lg transition text-sm"
-                  >
-                    Batal
-                  </button>
-                )}
-              </div>
-            </form>
+    {/* Layout Grid Full */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full flex-1 min-h-0">
+      
+      {/* Form Section (Diam / Tidak Ikut Scroll) */}
+      <div className="lg:col-span-4 bg-white dark:bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 h-fit transition-colors shrink-0">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+          {editingId ? 'Edit Catatan' : 'Buat Catatan Baru'}
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Judul</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Masukkan judul catatan..."
+              className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm transition-colors"
+            />
           </div>
-
-          {/* List Section */}
-          <div className="lg:col-span-8">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Daftar Catatan</h2>
-            
-            {loading ? (
-              <div className="text-center py-10 text-gray-500 dark:text-gray-400">Memuat catatan...</div>
-            ) : notes.length === 0 ? (
-              <div className="bg-white dark:bg-gray-900 p-8 rounded-xl text-center border border-gray-100 dark:border-gray-800 text-gray-400 transition-colors">
-                Belum ada catatan yang tersimpan.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {notes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between hover:shadow-md transition-colors"
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg line-clamp-1">{note.title}</h3>
-                        <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">
-                          {new Date(note.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                      <div className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
-                        {renderContentWithColors(note.content)}
-                      </div>
-                    </div>
-
-                    {/* Tombol Aksi: Edit, Lihat, Hapus */}
-                    <div className="flex justify-end gap-1.5 pt-3 border-t border-gray-50 dark:border-gray-800">
-                      <button
-                        onClick={() => handleEdit(note)}
-                        className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-medium transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setSelectedNote(note)}
-                        className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium transition"
-                      >
-                        Lihat
-                      </button>
-                      <button
-                        onClick={() => handleDelete(note.id)}
-                        className="px-2.5 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg text-xs font-medium transition"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Konten / Isi</label>
+            <textarea
+              rows={6}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Tulis isi catatan "
+              className="w-full px-4 py-2 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-100 text-sm resize-none transition-colors"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition text-sm shadow-sm"
+            >
+              {editingId ? 'Perbarui' : 'Simpan'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium px-4 py-2 rounded-lg transition text-sm"
+              >
+                Batal
+              </button>
             )}
           </div>
+        </form>
+      </div>
+
+      {/* List Section (Bisa Di-scroll Sendiri) */}
+      <div className="lg:col-span-8 flex flex-col h-full min-h-0">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 shrink-0">Daftar Catatan</h2>
+        
+        <div className="flex-1 overflow-y-auto pr-2 pb-6 min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-600 transition-all">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">Memuat catatan...</div>
+          ) : notes.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-xl text-center border border-gray-100 dark:border-gray-800 text-gray-400 transition-colors">
+              Belum ada catatan yang tersimpan.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {notes.map((note) => (
+                <div
+                  key={note.id}
+                  className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col justify-between hover:shadow-md transition-colors"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg line-clamp-1">{note.title}</h3>
+                      <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">
+                        {new Date(note.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-wrap line-clamp-4 mb-4">
+                      {renderContentWithColors(note.content)}
+                    </div>
+                  </div>
+
+                  {/* Tombol Aksi: Edit, Lihat, Hapus */}
+                  <div className="flex justify-end gap-1.5 pt-3 border-t border-gray-50 dark:border-gray-800">
+                    <button
+                      onClick={() => handleEdit(note)}
+                      className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-medium transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setSelectedNote(note)}
+                      className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg text-xs font-medium transition"
+                    >
+                      Lihat
+                    </button>
+                    <button
+                      onClick={() => handleDelete(note.id)}
+                      className="px-2.5 py-1.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-lg text-xs font-medium transition"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+    </div>
+  </div>
+
 
       {/* Pop-up Modal Detail Catatan */}
       {selectedNote && (

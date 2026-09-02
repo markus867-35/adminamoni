@@ -18,3 +18,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* --- GLOBAL SCROLLBAR TRANSPARAN & TIPIS --- */
+* {
+  /* Untuk Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
+}
+
+/* Untuk Chrome, Edge, dan Safari */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 150, 150, 0.3);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(150, 150, 150, 0.6);
+}

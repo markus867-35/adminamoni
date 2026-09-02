@@ -276,7 +276,7 @@ export default function AdminImageManager() {
                     Tidak ada gambar yang cocok dengan pencarian di folder ini.
                   </div>
                 ) : (
-                  <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="max-h-[500px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-400 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-600 transition-all">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
                       {filteredFolderFiles.map((f) => {
                         const displayName = f.name.includes('/') ? f.name.split('/').slice(1).join('/') : f.name;
