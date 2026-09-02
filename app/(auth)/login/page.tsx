@@ -56,7 +56,7 @@ console.log("Nilai is_2fa_enabled saat ini:", data.is_2fa_enabled);
   };
 
   // Fungsi terpisah untuk menyelesaikan proses login & redirect
-  const finalizeLogin = async (data) => {
+  const finalizeLogin = async (data: { id: string; email: string; username: string }) => {
     // Update waktu last_login ke database
     await supabase
       .from('admins')
