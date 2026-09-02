@@ -23,7 +23,7 @@ export default function LoginPage() {
   const [otpToken, setOtpToken] = useState('');
   const [adminData, setAdminData] = useState(null);
 
-  const handleLogin = async (e) => {
+ const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
@@ -81,7 +81,7 @@ console.log("Nilai is_2fa_enabled saat ini:", data.is_2fa_enabled);
     }, 1200);
   };
 
- const handleVerify2FA = async (e) => {
+ const handleVerify2FA = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
   setErrorMsg('');
