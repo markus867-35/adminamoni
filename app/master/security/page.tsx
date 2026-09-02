@@ -39,7 +39,7 @@ export default function Security2FAPage() {
   };
 
   // 2. Fungsi untuk verifikasi kode pertama kali & menyimpan ke database sesuai email
-  const handleVerifyAndSave = async (e) => {
+ const handleVerifyAndSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await fetch('/api/auth/verify-and-save-2fa', {
