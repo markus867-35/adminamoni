@@ -315,6 +315,8 @@ useEffect(() => {
   {openMenus.master && (
     <div className="bg-[#141b22] py-1 space-y-1 text-xs">
       <Link href="/master/operator" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Operator</span></Link>
+      <Link href="/master/security" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Security</span></Link>
+
 
     </div>
   )}
