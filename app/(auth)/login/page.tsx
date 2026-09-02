@@ -21,7 +21,7 @@ export default function LoginPage() {
   // State Tambahan untuk 2FA
   const [requires2FA, setRequires2FA] = useState(false);
   const [otpToken, setOtpToken] = useState('');
-  const [adminData, setAdminData] = useState(null);
+  const [adminData, setAdminData] = useState<any>(null);
 
  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
