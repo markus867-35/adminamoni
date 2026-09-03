@@ -211,7 +211,7 @@ useEffect(() => {
             {openMenus.PengaturanBank && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
                 <Link href="/admin/rekening/bank" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Bank</Link>
-                <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rekening Bank</Link>
+                <Link href="/admin/rekening/rekeningbank" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rekening Bank</Link>
                 <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Transaksi Lengkap</Link>
                 <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Laporan Turnover</Link>
               </div>
