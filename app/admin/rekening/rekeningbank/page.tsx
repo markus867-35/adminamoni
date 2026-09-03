@@ -18,6 +18,7 @@ interface RekeningItem {
   potongan_admin: number | null;
   sembunyikan: string | null; // '0' = Aktif/Tidak disembunyikan, '1' = Disembunyikan/Iya
   updated_at: string | null;
+  created_at?: string | null; // <-- Tambahkan baris ini
   member_group?: string | null;
 }
 
