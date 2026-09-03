@@ -90,7 +90,7 @@ useEffect(() => {
                 <Link href="/rangkuman-deposit" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit</Link>
                 <Link href="/rangkuman-withdrawal" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Withdrawal</Link>
                 <Link href="/penyesuaian-saldo" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Penyesuaian Saldo</Link>
-                <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit Auto</Link>
+                <Link href="/rangkuman-deposit-auto" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit Auto</Link>
               </div>
             )}
           </div>
@@ -110,9 +110,12 @@ useEffect(() => {
 
             {openMenus.member && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-                <Link href="/member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Group</Link>
+                <Link href="/member/member-group" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Group</Link>
                 <Link href="/member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member</Link>
-                <Link href="#" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Lihat IP</Link>
+                <Link href="/member/online-member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Online Member</Link>
+                <Link href="/member/lihat-ip" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Lihat IP</Link>
+                <Link href="/member/member-blacklist" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Blacklist</Link>
+                <Link href="/member/member-referral" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Referral</Link>
               </div>
             )}
           </div>
