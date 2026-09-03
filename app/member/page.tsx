@@ -336,9 +336,13 @@ export default function MemberPage() {
                       </td>
                       <td className="border border-slate-300 dark:border-slate-700 p-2.5 text-center">
                         <div className="inline-flex items-center space-x-1">
-                          <button className="bg-amber-400 hover:bg-amber-500 text-white p-1.5 rounded transition cursor-pointer" title="Edit">
+                          <Link 
+                            href={`/member/edit/${member.id}`}
+                            className="bg-amber-400 hover:bg-amber-500 text-white p-1.5 rounded transition inline-flex items-center justify-center cursor-pointer"
+                            title="Edit"
+                          >
                             <Edit className="w-3.5 h-3.5" />
-                          </button>
+                          </Link>
                           <button className="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded transition cursor-pointer" title="Reset Password">
                             <Key className="w-3.5 h-3.5" />
                           </button>

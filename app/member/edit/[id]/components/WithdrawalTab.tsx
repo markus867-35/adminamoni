@@ -1,0 +1,117 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { FiArrowLeft } from 'react-icons/fi';
+import Link from 'next/link';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+interface WithdrawalTabProps {
+  memberId: string;
+  username: string;
+}
+
+export default function WithdrawalTab({ memberId, username }: WithdrawalTabProps) {
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWithdrawals = async () => {
+      if (!username) return;
+      setLoading(true);
+      try {
+        // Sesuaikan nama tabel database Anda jika berbeda (misal: 'withdrawals')
+        const { data, error } = await supabase
+          .from('withdrawals')
+          .select('*')
+          .eq('username', username)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (data) {
+          setWithdrawals(data);
+        }
+      } catch (error) {
+        console.error('Gagal memuat data withdrawal:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWithdrawals();
+  }, [username]);
+
+  const formatRupiah = (num: number) => {
+    return 'Rp. ' + Number(num || 0).toLocaleString('id-ID');
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Tabel Data Withdrawal */}
+      <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-900">
+        <table className="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+              <th className="px-4 py-3 font-semibold border-r border-gray-200 dark:border-gray-700 w-16">No.</th>
+              <th className="px-4 py-3 font-semibold border-r border-gray-200 dark:border-gray-700">Total</th>
+              <th className="px-4 py-3 font-semibold border-r border-gray-200 dark:border-gray-700">Ke Rekening</th>
+              <th className="px-4 py-3 font-semibold border-r border-gray-200 dark:border-gray-700">Waktu Withdrawal</th>
+              <th className="px-4 py-3 font-semibold border-r border-gray-200 dark:border-gray-700">Status</th>
+              <th className="px-4 py-3 font-semibold">Admin Respon</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-gray-400 italic">
+                  Memuat data withdrawal...
+                </td>
+              </tr>
+            ) : withdrawals.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  Tidak ada data
+                </td>
+              </tr>
+            ) : (
+              withdrawals.map((item, index) => (
+                <tr key={item.id || index} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="px-4 py-3 border-r border-gray-200 dark:border-gray-700">{index + 1}</td>
+                  <td className="px-4 py-3 border-r border-gray-200 dark:border-gray-700 font-medium">{formatRupiah(item.total || item.amount)}</td>
+                  <td className="px-4 py-3 border-r border-gray-200 dark:border-gray-700">{item.ke_rekening || item.bank_info}</td>
+                  <td className="px-4 py-3 border-r border-gray-200 dark:border-gray-700">{item.created_at}</td>
+                  <td className="px-4 py-3 border-r border-gray-200 dark:border-gray-700">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      item.status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 
+                      item.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {item.status || 'PENDING'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">{item.admin_respon || '-'}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Footer Info & Tombol Kembali */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          Menampilkan sampai dari total {withdrawals.length} baris
+        </div>
+        <Link 
+          href="/member"
+          className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded transition shadow-sm cursor-pointer"
+        >
+          <FiArrowLeft className="text-xs" />
+          <span>Kembali</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
