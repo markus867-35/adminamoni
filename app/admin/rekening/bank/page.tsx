@@ -24,17 +24,17 @@ export default function BankPage() {
   const [banks, setBanks] = useState<BankItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBanks = async () => {
+const fetchBanks = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('admin_banks')
       .select('*')
+      .or('member_group.is.null,member_group.eq.Bank') // <-- Hanya ambil yang group-nya null atau 'Bank'
       .order('id', { ascending: true });
 
     if (error) {
       console.error('Gagal mengambil data:', error.message);
     } else {
-      console.log('Cek struktur data dari Supabase:', data); // Buka Inspect Element (F12) -> Console untuk melihat nama kolom yang benar
       setBanks(data || []);
     }
     setLoading(false);
