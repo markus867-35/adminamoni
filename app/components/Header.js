@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Menu, ChevronDown, User, Wallet, Settings, LogOut, Sun, Moon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -72,11 +73,14 @@ const handleLogout = async () => {
           {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-slate-200" />}
         </button>
 
-        <div className="flex items-center bg-[#251d54] px-3.5 py-1.5 rounded-full text-xs font-semibold text-yellow-400 border border-yellow-500/30 shadow-inner">
-          <Wallet className="w-3.5 h-3.5 mr-2" />
-          <span>Rp 101.345.500</span>
-          <ChevronDown className="w-3 h-3 ml-2 text-slate-400" />
-        </div>
+<Link 
+  href="/admin/history-koin" 
+  className="flex items-center bg-[#251d54] px-3.5 py-1.5 rounded-full text-xs font-semibold text-yellow-400 border border-yellow-500/30 shadow-inner hover:bg-[#32276e] transition cursor-pointer"
+>
+  <Wallet className="w-3.5 h-3.5 mr-2" />
+  <span>Rp 101.345.500</span>
+  <ChevronDown className="w-3 h-3 ml-2 text-slate-400" />
+</Link>
 
         {/* Bagian Profil dengan Dropdown */}
         <div className="relative">
