@@ -47,18 +47,18 @@ export default function RekeningBankPage() {
   }, []);
 
   // Format tanggal waktu diubah
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).replace(',', '');
-  };
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).replace(',', '');
+};
 
   return (
     <div className="w-full px-2 sm:px-4 py-4 space-y-4">
@@ -143,7 +143,7 @@ export default function RekeningBankPage() {
                       {item.sembunyikan === '1' ? 'Iya' : 'Tidak'}
                     </td>
                     <td className="py-2.5 px-3 border-r border-gray-300 dark:border-gray-700 text-xs text-gray-500">
-                      {formatDate(item.updated_at || item.created_at)}
+                      {formatDate(item.updated_at || item.created_at || null)}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <Link 
