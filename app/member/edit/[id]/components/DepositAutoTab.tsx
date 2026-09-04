@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
 interface DepositTabProps {
   memberId: string | number;
   username: string;
@@ -15,7 +19,6 @@ export default function DepositTab({ memberId, username }: DepositTabProps) {
     const fetchDeposits = async () => {
       setLoading(true);
       try {
-        // Sesuaikan nama tabel database Anda (misal: 'deposit_auto' atau 'deposits')
          const { data, error } = await supabase
           .from('deposit_auto')
           .select('*')
