@@ -29,7 +29,7 @@ const fetchBanks = async () => {
     const { data, error } = await supabase
       .from('admin_banks')
       .select('*')
-      .or('member_group.is.null,member_group.eq.Bank') // <-- Hanya ambil yang group-nya null atau 'Bank'
+      .in('member_group', ['Bank', 'E-Wallet'])
       .order('id', { ascending: true });
 
     if (error) {
