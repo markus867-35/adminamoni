@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -92,6 +94,15 @@ export default function DepositTab({ memberId, username }: DepositTabProps) {
           </div>
         </>
       )}
+                  <div className="pt-2">
+        <Link 
+          href="/member"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded transition shadow-sm cursor-pointer"
+        >
+          <FiArrowLeft className="text-xs" />
+          <span>Kembali</span>
+        </Link>
+      </div>
     </div>
   );
 }

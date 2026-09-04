@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,7 +44,7 @@ export default function DepositAutoTab({ memberId, username }: DepositAutoTabPro
   };
 
   return (
-    <div className="space-y-4 py-2">
+    <div className="space-y-2 py-1">
       {loading ? (
         <div className="py-8 text-center text-gray-400 text-sm">Memuat data deposit auto...</div>
       ) : (
@@ -91,6 +93,15 @@ export default function DepositAutoTab({ memberId, username }: DepositAutoTabPro
           </div>
         </>
       )}
+            <div className="pt-2">
+        <Link 
+          href="/member"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded transition shadow-sm cursor-pointer"
+        >
+          <FiArrowLeft className="text-xs" />
+          <span>Kembali</span>
+        </Link>
+      </div>
     </div>
   );
 }

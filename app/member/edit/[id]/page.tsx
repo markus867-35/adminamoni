@@ -7,6 +7,10 @@ import { createClient } from '@supabase/supabase-js';
 import DepositTab from '@/app/member/edit/[id]/components/DepositTab';
 import DepositAutoTab from '@/app/member/edit/[id]/components/DepositAutoTab';
 import WithdrawalTab from '@/app/member/edit/[id]/components/WithdrawalTab';
+import PenyesuaianSaldo from '@/app/member/edit/[id]/components/PenyesuaianSaldo';
+import LaporanTransaksi from '@/app/member/edit/[id]/components/LaporanTransaksi';
+import LaporanPermainan from '@/app/member/edit/[id]/components/LaporanPermainan';
+import ReferralTab from '@/app/member/edit/[id]/components/ReferralTab';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -149,7 +153,7 @@ export default function UbahMemberPage() {
           <span>Ubah Member</span>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-3 space-y-4">
 {/* Tab Navigation Buttons ala Kotak Terpisah */}
           <div className="flex flex-wrap border border-gray-200 dark:border-gray-700 rounded-t bg-gray-50/50 dark:bg-gray-800/30 overflow-hidden text-xs sm:text-sm">
             {tabs.map((tab, index) => (
@@ -171,7 +175,7 @@ export default function UbahMemberPage() {
           </div>
 
           {/* Area Konten Tab */}
-          <div className="p-4">
+          <div className="p-0 ">
             {loading ? (
               <div className="py-12 text-center text-gray-400 italic text-sm">
                 Memuat data member dari database...
@@ -352,12 +356,29 @@ export default function UbahMemberPage() {
                 {activeTab === 'Withdrawal' && (
                   <WithdrawalTab memberId={memberId as string} username={formData.username} />
                 )}
+               {/* KONTEN TAB: PENYESUAIAN SALDO */}
+                {activeTab === 'Penyesuaian Saldo' && (
+                  <PenyesuaianSaldo memberId={memberId as string} username={formData.username} />
+                )}
+                {activeTab === 'Laporan Transaksi' && (
+                  <LaporanTransaksi memberId={memberId as string} username={formData.username} />
+                )}
+                {activeTab === 'Laporan Permainan' && (
+                  <LaporanPermainan memberId={memberId as string} username={formData.username} />
+                )}
+                {activeTab === 'Referral' && (
+                  <ReferralTab memberId={memberId as string} username={formData.username} />
+                )}
 
                 {/* KONTEN TAB LAINNYA YANG BELUM DIBUAT */}
                 {activeTab !== 'Member Data' && 
                  activeTab !== 'Deposit' && 
                  activeTab !== 'Deposit Auto' && 
-                 activeTab !== 'Withdrawal' && (
+                 activeTab !== 'Withdrawal' && 
+                 activeTab !== 'Penyesuaian Saldo' && 
+                 activeTab !== 'Laporan Transaksi' && 
+                 activeTab !== 'Laporan Permainan' &&
+                 activeTab !== 'Referral' && (
                   <div className="py-12 text-center text-gray-500 text-sm border border-dashed border-gray-200 dark:border-gray-700 rounded p-6">
                     Fitur untuk tab <span className="font-semibold text-blue-600">{activeTab}</span> akan ditampilkan di sini.
                   </div>
