@@ -16,10 +16,10 @@ export default function DepositTab({ memberId, username }: DepositTabProps) {
       setLoading(true);
       try {
         // Sesuaikan nama tabel database Anda (misal: 'deposit_auto' atau 'deposits')
-        const { data, error } = await supabase
-          .from('deposit_auto') 
+         const { data, error } = await supabase
+          .from('deposit_auto')
           .select('*')
-          .eq('username', username); // atau .eq('member_id', memberId)
+          .eq('username', username);
 
         if (error) throw error;
         if (data) setDeposits(data);
