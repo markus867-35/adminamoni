@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   LayoutDashboard, 
   ArrowLeftRight, 
   Users, 
   Tag, 
-  Hash, 
   ChevronDown,
   ChevronRight,
   Landmark,
@@ -17,21 +16,31 @@ import {
   Settings,
   Wrench,
   Server,
-  Briefcase,
-  FolderGit2,
   ChevronUp
 } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default function Sidebar({ isOpen }) {
   const [adminName, setAdminName] = useState('Admin');
-  // State untuk mengontrol menu mana saja yang sedang terbuka
+  const [allowedMenus, setAllowedMenus] = useState(null);
+
   const [openMenus, setOpenMenus] = useState({
+    dashboard: false,
     transaksi: false,
     member: false,
     promosi: false,
     togel: false,
-    Laporan: false,PengaturanProvider: false,PengaturanPeralatan:false,storage:false,master:false,
-    PengaturanBank: false,
+    laporan: false,
+    pengaturan_bank: false,
+    pengaturan_provider: false,
+    pengaturan_peralatan: false,
+    storage: false,
+    master: false,
   });
 
   const toggleMenu = (menu) => {
@@ -41,19 +50,38 @@ export default function Sidebar({ isOpen }) {
     }));
   };
 
-useEffect(() => {
-    // Mengambil nama admin yang disimpan saat login
-    const name = localStorage.getItem('admin_name');
-    if (name) {
-      setAdminName(name);
-    }
+  useEffect(() => {
+    const fetchAdminAccess = async () => {
+      const name = localStorage.getItem('admin_name');
+      if (name) {
+        setAdminName(name);
+
+        const { data, error } = await supabase
+          .from('admins')
+          .select('allowed_menus')
+          .eq('username', name)
+          .single();
+
+        if (!error && data && data.allowed_menus) {
+          setAllowedMenus(data.allowed_menus);
+        }
+      }
+    };
+
+    fetchAdminAccess();
   }, []);
+
+  const isMenuAllowed = (menuId) => {
+    if (!allowedMenus) return true; // Jika data kosong/super admin, tampilkan semua
+    return allowedMenus.includes(menuId);
+  };
+
   return (
     <aside className={`w-64 bg-[#1b2531] text-slate-300 flex flex-col justify-between shrink-0 select-none sticky top-0 h-screen border-r border-slate-800 transition-all duration-300 ${
       isOpen ? 'flex' : 'hidden'
     }`}>
       <div className="overflow-y-auto flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#1b2531] [&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600">
-        {/* Logo / Header Sidebar */}
+        
         <div className="h-16 flex items-center px-6 bg-[#161f28] border-b border-slate-800 shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-slate-900">M</div>
@@ -61,66 +89,92 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Menu Navigasi */}
         <nav className="py-2 space-y-1 text-sm font-medium">
           
-          {/* Dashboard */}
-          <Link href="/admin" className="flex items-center px-6 py-3 hover:bg-[#222d3d] transition text-white">
-            <LayoutDashboard className="w-4 h-4 mr-3 text-slate-400" />
-            Dashboard
-          </Link>
+          {isMenuAllowed('dashboard') && (
+            <Link href="/admin" className="flex items-center px-6 py-3 hover:bg-[#222d3d] transition text-white">
+              <LayoutDashboard className="w-4 h-4 mr-3 text-slate-400" />
+              Dashboard
+            </Link>
+          )}
 
-          {/* Menu Transaksi (Dropdown) */}
-          <div>
-            <button 
-              onClick={() => toggleMenu('transaksi')} 
-              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-            >
-              <div className="flex items-center">
-                <ArrowLeftRight className="w-4 h-4 mr-3 text-slate-400" /> 
-                <span>Transaksi</span>
-              </div>
-              {openMenus.transaksi ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-            </button>
+          {isMenuAllowed('transaksi') && (
+            <div>
+              <button 
+                onClick={() => toggleMenu('transaksi')} 
+                className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+              >
+                <div className="flex items-center">
+                  <ArrowLeftRight className="w-4 h-4 mr-3 text-slate-400" /> 
+                  <span>Transaksi</span>
+                </div>
+                {openMenus.transaksi ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              </button>
 
-            {openMenus.transaksi && (
-              <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-                <Link href="/depo" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Deposit Baru</Link>
-                <Link href="/wd" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Withdrawal Baru</Link>
-                <Link href="/rangkuman-deposit" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit</Link>
-                <Link href="/rangkuman-withdrawal" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Withdrawal</Link>
-                <Link href="/penyesuaian-saldo" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Penyesuaian Saldo</Link>
-                <Link href="/rangkuman-deposit-auto" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit Auto</Link>
-              </div>
-            )}
-          </div>
+              {openMenus.transaksi && (
+                <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+                  <Link href="/depo" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Deposit Baru</Link>
+                  <Link href="/wd" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Withdrawal Baru</Link>
+                  <Link href="/rangkuman-deposit" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit</Link>
+                  <Link href="/rangkuman-withdrawal" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Withdrawal</Link>
+                  <Link href="/penyesuaian-saldo" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Penyesuaian Saldo</Link>
+                  <Link href="/rangkuman-deposit-auto" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rangkuman Deposit Auto</Link>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Menu Member (Dropdown) */}
-          <div>
-            <button 
-              onClick={() => toggleMenu('member')} 
-              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-            >
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-3 text-slate-400" /> 
-                <span>Member</span>
-              </div>
-              {openMenus.member ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-            </button>
+{isMenuAllowed('member') && (
+            <div>
+              <button 
+                onClick={() => toggleMenu('member')} 
+                className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+              >
+                <div className="flex items-center">
+                  <Users className="w-4 h-4 mr-3 text-slate-400" /> 
+                  <span>Member</span>
+                </div>
+                {openMenus.member ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              </button>
 
-            {openMenus.member && (
-              <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-                <Link href="/member/member-group" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Group</Link>
-                <Link href="/member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member</Link>
-                <Link href="/member/online-member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Online Member</Link>
-                <Link href="/member/lihat-ip" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Lihat IP</Link>
-                <Link href="/member/member-blacklist" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Blacklist</Link>
-                <Link href="/member/member-referral" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Referral</Link>
-              </div>
-            )}
-          </div>
+              {openMenus.member && (
+                <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+                  {isMenuAllowed('member-group') && (
+                    <Link href="/member/member-group" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Group
+                    </Link>
+                  )}
+                  {isMenuAllowed('member') && (
+                    <Link href="/member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member
+                    </Link>
+                  )}
+                  {isMenuAllowed('online-member') && (
+                    <Link href="/member/online-member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Online Member
+                    </Link>
+                  )}
+                  {isMenuAllowed('lihat-ip') && (
+                    <Link href="/member/lihat-ip" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Lihat IP
+                    </Link>
+                  )}
+                  {isMenuAllowed('member-blacklist') && (
+                    <Link href="/member/member-blacklist" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Blacklist
+                    </Link>
+                  )}
+                  {isMenuAllowed('member-referral') && (
+                    <Link href="/member/member-referral" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                      <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Member Referral
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Menu Promosi (Dropdown) */}
+          {isMenuAllowed('promosi') && (
           <div>
             <button 
               onClick={() => toggleMenu('promosi')} 
@@ -147,8 +201,9 @@ useEffect(() => {
               </div>
             )}
           </div>
+          )}
 
-          {/* Menu Togel (Dropdown) */}
+{isMenuAllowed('togel') && (
           <div>
             <button 
               onClick={() => toggleMenu('togel')} 
@@ -163,31 +218,60 @@ useEffect(() => {
 
             {openMenus.togel && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-                <Link href="/admin/togel/togel-pasaran" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel pasaran</Link>
-                <Link href="/admin/togel/togel-invoice" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Invoice</Link>
-                <Link href="/admin/togel/togelresult" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Result</Link>
-                <Link href="/admin/togel/togel-menang" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Menang</Link>
-                <Link href="/admin/togel/laporan-togel" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Laporan Togel</Link>
-                <Link href="/admin/togel/livedrawal" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel livedrawal</Link>
-                <Link href="/admin/togel/buku-mimpi" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Buku Mimpi</Link>
+                {isMenuAllowed('togel-pasaran') && (
+                  <Link href="/admin/togel/togel-pasaran" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel pasaran
+                  </Link>
+                )}
+                {isMenuAllowed('togel-invoice') && (
+                  <Link href="/admin/togel/togel-invoice" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Invoice
+                  </Link>
+                )}
+                {isMenuAllowed('togelresult') && (
+                  <Link href="/admin/togel/togelresult" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Result
+                  </Link>
+                )}
+                {isMenuAllowed('togel-menang') && (
+                  <Link href="/admin/togel/togel-menang" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel Menang
+                  </Link>
+                )}
+                {isMenuAllowed('laporan-togel') && (
+                  <Link href="/admin/togel/laporan-togel" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Laporan Togel
+                  </Link>
+                )}
+                {isMenuAllowed('livedrawal') && (
+                  <Link href="/admin/togel/livedrawal" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Togel livedrawal
+                  </Link>
+                )}
+                {isMenuAllowed('buku-mimpi') && (
+                  <Link href="/admin/togel/buku-mimpi" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition">
+                    <ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Buku Mimpi
+                  </Link>
+                )}
               </div>
             )}
           </div>
+          )}
 
-
-                    <div>
+          {isMenuAllowed('laporan') && (
+          <div>
             <button 
-              onClick={() => toggleMenu('Laporan')} 
+              onClick={() => toggleMenu('laporan')} 
               className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
             >
               <div className="flex items-center">
                 <FileText className="w-4 h-4 mr-3 text-slate-400" /> 
                 <span>Laporan</span>
               </div>
-              {openMenus.Laporan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              {openMenus.laporan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
-            {openMenus.Laporan && (
+            {openMenus.laporan && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
                 <Link href="/admin/laporan/game-perusahaan" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Laporan Game Perusahaan</Link>
                 <Link href="/admin/laporan/game-member" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Laporan Game Member</Link>
@@ -197,21 +281,22 @@ useEffect(() => {
               </div>
             )}
           </div>
+          )}
 
-
-                    <div>
+          {isMenuAllowed('pengaturan_bank') && (
+          <div>
              <button 
-              onClick={() => toggleMenu('PengaturanBank')} 
+              onClick={() => toggleMenu('pengaturan_bank')} 
               className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
             >
               <div className="flex items-center">
                 <Landmark className="w-4 h-4 mr-3 text-slate-400" /> 
                 <span>Pengaturan Bank</span>
               </div>
-              {openMenus.PengaturanBank ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              {openMenus.pengaturan_bank ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
-            {openMenus.PengaturanBank && (
+            {openMenus.pengaturan_bank && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
                 <Link href="/admin/rekening/bank" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Bank</Link>
                 <Link href="/admin/rekening/rekeningbank" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Rekening Bank</Link>
@@ -220,22 +305,22 @@ useEffect(() => {
               </div>
             )}
           </div>
+           )}
 
+           {isMenuAllowed('pengaturan_provider') && (
+          <div>
+            <button 
+              onClick={() => toggleMenu('pengaturan_provider')} 
+              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+            >
+              <div className="flex items-center">
+                <Settings className="w-4 h-4 mr-3 text-slate-400" /> 
+                <span>Pengaturan Provider</span>
+              </div>
+              {openMenus.pengaturan_provider ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
 
-
-<div>
-  <button 
-    onClick={() => toggleMenu('PengaturanProvider')} 
-    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-  >
-    <div className="flex items-center">
-      <Settings className="w-4 h-4 mr-3 text-slate-400" /> 
-      <span>Pengaturan Provider</span>
-    </div>
-    {openMenus.PengaturanProvider ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-  </button>
-
-            {openMenus.PengaturanProvider && (
+            {openMenus.pengaturan_provider && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
                 <Link href="/admin/toto" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Toto</span></Link>
                 <Link href="/admin/slot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Slot</Link>
@@ -247,21 +332,22 @@ useEffect(() => {
               </div>
             )}
           </div>
+          )}
+        
+          {isMenuAllowed('pengaturan_peralatan') && (
+          <div>
+            <button 
+              onClick={() => toggleMenu('pengaturan_peralatan')} 
+              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+            >
+              <div className="flex items-center">
+                <Wrench className="w-4 h-4 mr-3 text-slate-400" /> 
+                <span>Pengaturan Peralatan</span>
+              </div>
+              {openMenus.pengaturan_peralatan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
 
-
-<div>
-  <button 
-    onClick={() => toggleMenu('PengaturanPeralatan')} 
-    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-  >
-    <div className="flex items-center">
-      <Wrench className="w-4 h-4 mr-3 text-slate-400" /> 
-      <span>Pengaturan Peralatan</span>
-    </div>
-    {openMenus.PengaturanPeralatan ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-  </button>
-
-            {openMenus.PengaturanPeralatan && (
+            {openMenus.pengaturan_peralatan && (
               <div className="bg-[#141b22] py-1 space-y-1 text-xs">
                 <Link href="/banner" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Banner</span></Link>
                 <Link href="/admin/hubungi" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Hubungi</Link>
@@ -273,62 +359,58 @@ useEffect(() => {
               </div>
             )}
           </div>
+          )}
 
+          {isMenuAllowed('storage') && (
+          <div>
+            <button 
+              onClick={() => toggleMenu('storage')} 
+              className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+            >
+              <div className="flex items-center">
+                <Database className="w-4 h-4 mr-3 text-slate-400" />
+                <span>Storage</span>
+              </div>
+              {openMenus.storage ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
 
+            {openMenus.storage && (
+              <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+                <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Bot</span></Link>
+                <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Extession</Link>
+                <Link href="/admin/code-storage/managerimage" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Manager Image</Link>
+                <Link href="/admin/code-storage/ai-chat" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Gemini</Link>
+                <Link href="/admin/code-storage/notepad" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Notepad</Link>
+              </div>
+            )}
+          </div>
+          )}
 
-<div>
-  <button 
-    onClick={() => toggleMenu('storage')} 
-    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-  >
-<div className="flex items-center">
-    <Database className="w-4 h-4 mr-3 text-slate-400" />
-    <span>Storage</span>
-  </div>
-    {openMenus.storage ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-  </button>
+          {isMenuAllowed('master') && (
+            <div>
+              <button 
+                onClick={() => toggleMenu('master')} 
+                className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
+              >
+                <div className="flex items-center">
+                  <Server className="w-4 h-4 mr-3 text-slate-400" />
+                  <span>Master</span>
+                </div>
+                {openMenus.master ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              </button>
 
-  {openMenus.storage && (
-    <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-      <Link href="/admin/code-storage/bot" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Bot</span></Link>
-      <Link href="/admin/code-storage/extession" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Extession</Link>
-      <Link href="/admin/code-storage/managerimage" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Manager Image</Link>
-      <Link href="/admin/code-storage/ai-chat" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Gemini</Link>
-      <Link href="/admin/code-storage/notepad" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" />Notepad</Link>
-    </div>
-  )}
-</div>
-
-
-
-
-
-<div>
-  <button 
-    onClick={() => toggleMenu('master')} 
-    className="w-full flex items-center justify-between px-6 py-3 hover:bg-[#222d3d] transition text-slate-300 cursor-pointer"
-  >
-<div className="flex items-center">
-    <Server className="w-4 h-4 mr-3 text-slate-400" />
-    <span>Master</span>
-  </div>
-    {openMenus.master ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-  </button>
-
-  {openMenus.master && (
-    <div className="bg-[#141b22] py-1 space-y-1 text-xs">
-      <Link href="/master/operator" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Operator</span></Link>
-      <Link href="/master/security" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Security</span></Link>
-
-
-    </div>
-  )}
-</div>
+              {openMenus.master && (
+                <div className="bg-[#141b22] py-1 space-y-1 text-xs">
+                  <Link href="/master/operator" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Operator</span></Link>
+                  <Link href="/master/security" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Security</span></Link>
+                </div>
+              )}
+            </div>
+          )}
 
         </nav>
       </div>
 
-{/* Footer Sidebar (Login Sebagai) */}
       <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0">
         <p className="tracking-wider text-[11px] text-slate-400">Login sebagai:</p>
         <p className="font-bold text-white tracking-wide mt-0.5 truncate">{adminName}</p>

@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, UserPlus, Trash2, ArrowLeft, RefreshCw } from 'lucide-react';
+import { ShieldCheck, UserPlus, Trash2, ArrowLeft, RefreshCw, Settings } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import Swal from 'sweetalert2';
 
@@ -13,6 +14,7 @@ const supabase = createClient(
 export default function AdminMasterPage() {
   const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -83,6 +85,10 @@ export default function AdminMasterPage() {
     }
   };
 
+const handleSettingsAdmin = (adm: any) => {
+    router.push(`/master/operator/setting/${adm.id}`);
+  };
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-120px)] justify-between space-y-6">
       <div className="space-y-6">
@@ -139,7 +145,6 @@ export default function AdminMasterPage() {
                     </tr>
                   ) : admins.length > 0 ? (
                     admins.map((adm, index) => {
-                      // Cek apakah admin online (last_seen kurang dari 60 detik yang lalu)
                       const isOnline = adm.last_seen && (new Date().getTime() - new Date(adm.last_seen).getTime() < 60000);
 
                       return (
@@ -147,50 +152,48 @@ export default function AdminMasterPage() {
                           <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">
                             {index + 1}
                           </td>
-<td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">
-  <div className="flex items-center space-x-3">
-    {/* Avatar / Foto Profil yang bisa diklik */}
-    <div 
-      onClick={() => {
-        Swal.fire({
-          title: `<span style="font-size: 16px;">${adm.username}</span>`,
-          html: `
-            <div style="display: flex; justify-content: center; align-items: center;">
-              <img 
-                src="${adm.avatar_url || 'https://via.placeholder.com/150'}" 
-                alt="${adm.username}" 
-                style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; border: 4px solid #cbd5e1;" 
-              />
-            </div>
-            <p style="margin-top: 15px; font-size: 13px; color: #64748b;">Email: ${adm.email || '-'}</p>
-          `,
-          showCloseButton: true,
-          showConfirmButton: false,
-          width: '350px',
-          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
-          color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b',
-        });
-      }}
-      className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-600 cursor-pointer hover:opacity-80 transition hover:ring-2 hover:ring-blue-500"
-      title="Klik untuk melihat foto profil"
-    >
-      {adm.avatar_url ? (
-        <img 
-          src={adm.avatar_url} 
-          alt={adm.username} 
-          className="w-full h-full object-cover" 
-        />
-      ) : (
-        <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">
-          {adm.username ? adm.username.charAt(0) : 'A'}
-        </span>
-      )}
-    </div>
-    
-    {/* Nama Admin */}
-    <span>{adm.username || '-'}</span>
-  </div>
-</td>
+                          <td className="px-4 py-3 font-medium align-middle border-r border-slate-200 dark:border-slate-800">
+                            <div className="flex items-center space-x-3">
+                              <div 
+                                onClick={() => {
+                                  Swal.fire({
+                                    title: `<span style="font-size: 16px;">${adm.username}</span>`,
+                                    html: `
+                                      <div style="display: flex; justify-content: center; align-items: center;">
+                                        <img 
+                                          src="${adm.avatar_url || 'https://via.placeholder.com/150'}" 
+                                          alt="${adm.username}" 
+                                          style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; border: 4px solid #cbd5e1;" 
+                                        />
+                                      </div>
+                                      <p style="margin-top: 15px; font-size: 13px; color: #64748b;">Email: ${adm.email || '-'}</p>
+                                    `,
+                                    showCloseButton: true,
+                                    showConfirmButton: false,
+                                    width: '350px',
+                                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b',
+                                  });
+                                }}
+                                className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-600 cursor-pointer hover:opacity-80 transition hover:ring-2 hover:ring-blue-500"
+                                title="Klik untuk melihat foto profil"
+                              >
+                                {adm.avatar_url ? (
+                                  <img 
+                                    src={adm.avatar_url} 
+                                    alt={adm.username} 
+                                    className="w-full h-full object-cover" 
+                                  />
+                                ) : (
+                                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase">
+                                    {adm.username ? adm.username.charAt(0) : 'A'}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <span>{adm.username || '-'}</span>
+                            </div>
+                          </td>
                           <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 align-middle border-r border-slate-200 dark:border-slate-800">{adm.email || '-'}</td>
                           
                           <td className="px-4 py-3 align-middle border-r border-slate-200 dark:border-slate-800">
@@ -229,13 +232,25 @@ export default function AdminMasterPage() {
                           </td>
 
                           <td className="px-4 py-3 text-center align-middle">
-                            <button 
-                              onClick={() => handleDeleteAdmin(adm.id, adm.username)}
-                              className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition cursor-pointer inline-flex items-center justify-center"
-                              title="Hapus Admin"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-center space-x-1.5">
+                              {/* Tombol Setting */}
+                              <button 
+                                onClick={() => handleSettingsAdmin(adm)}
+                                className="p-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition cursor-pointer inline-flex items-center justify-center"
+                                title="Setting Admin"
+                              >
+                                <Settings className="w-4 h-4" />
+                              </button>
+
+                              {/* Tombol Hapus */}
+                              <button 
+                                onClick={() => handleDeleteAdmin(adm.id, adm.username)}
+                                className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded transition cursor-pointer inline-flex items-center justify-center"
+                                title="Hapus Admin"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
