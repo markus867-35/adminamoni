@@ -163,14 +163,14 @@ const handleSettingsAdmin = (adm: any) => {
                                         <img 
                                           src="${adm.avatar_url || 'https://via.placeholder.com/150'}" 
                                           alt="${adm.username}" 
-                                          style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; border: 4px solid #cbd5e1;" 
+                                          style="width: 280px; height: 280px; object-fit: cover; border-radius: 50%; border: 4px solid #cbd5e1;" 
                                         />
                                       </div>
                                       <p style="margin-top: 15px; font-size: 13px; color: #64748b;">Email: ${adm.email || '-'}</p>
                                     `,
                                     showCloseButton: true,
                                     showConfirmButton: false,
-                                    width: '350px',
+                                    width: '520px', // Diperbesar agar pas dengan gambar 280px
                                     background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
                                     color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b',
                                   });

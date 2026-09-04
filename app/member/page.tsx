@@ -343,9 +343,11 @@ export default function MemberPage() {
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </Link>
-                          <button className="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded transition cursor-pointer" title="Reset Password">
-                            <Key className="w-3.5 h-3.5" />
-                          </button>
+<Link href={`/member/ubahpas/${member.id}`}>
+  <button className="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded transition cursor-pointer" title="Reset Password">
+    <Key className="w-3.5 h-3.5" />
+  </button>
+</Link>
                         </div>
                       </td>
                     </tr>

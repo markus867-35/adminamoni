@@ -212,7 +212,7 @@ export default function AdminSettingPage() {
             <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               <Link href="/admin" className="hover:underline text-blue-600 dark:text-blue-400">Dashboard</Link>
               <span>/</span>
-              <Link href="/admin/master" className="hover:underline text-blue-600 dark:text-blue-400">Admin Master</Link>
+              <Link href="/master/operator" className="hover:underline text-blue-600 dark:text-blue-400">Admin Master</Link>
               <span>/</span>
               <span>Setting</span>
             </div>
