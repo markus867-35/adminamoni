@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import 'leaflet/dist/leaflet.css';
 
 interface MapWidgetProps {
   sourceLang: string;
@@ -30,12 +29,10 @@ export default function MapWidget({ sourceLang, targetLang, getLanguageName }: M
   const [MapComponents, setMapComponents] = useState<any>(null);
 
   useEffect(() => {
-    // Memuat modul Leaflet dan React-Leaflet secara eksklusif hanya di sisi Browser (Client-side)
     Promise.all([
       import('react-leaflet'),
       import('leaflet')
     ]).then(([ReactLeaflet, L]) => {
-      // Perbaikan icon marker Leaflet
       // @ts-ignore
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({

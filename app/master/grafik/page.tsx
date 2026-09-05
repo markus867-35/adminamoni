@@ -134,7 +134,13 @@ export default function TranslationPage() {
   return (
     <div className="min-h-screen text-[var(--foreground,inherit)] bg-[var(--background,transparent)] p-4 md:p-8 flex flex-col items-center justify-center transition-colors duration-300">
       <div className="w-full max-w-9xl mx-auto flex flex-col gap-6">
-        
+        {/* Tambahkan tag link Leaflet CSS di sini */}
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossOrigin=""
+      />
         {/* Header Judul */}
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-500">
