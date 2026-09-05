@@ -1,13 +1,6 @@
 'use client';
-import React from 'react';
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
-
-// Import komponen react-leaflet secara dinamis di dalam file widget agar aman dari SSR
-const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then((m) => m.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then((m) => m.Popup), { ssr: false });
 
 interface MapWidgetProps {
   sourceLang: string;
@@ -34,9 +27,15 @@ const getCoordinates = (code: string): [number, number] => {
 };
 
 export default function MapWidget({ sourceLang, targetLang, getLanguageName }: MapWidgetProps) {
-  // Perbaikan icon marker Leaflet agar hanya berjalan di browser (Client-side)
-  if (typeof window !== 'undefined') {
-    import('leaflet').then((L) => {
+  const [MapComponents, setMapComponents] = useState<any>(null);
+
+  useEffect(() => {
+    // Memuat modul Leaflet dan React-Leaflet secara eksklusif hanya di sisi Browser (Client-side)
+    Promise.all([
+      import('react-leaflet'),
+      import('leaflet')
+    ]).then(([ReactLeaflet, L]) => {
+      // Perbaikan icon marker Leaflet
       // @ts-ignore
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -44,8 +43,26 @@ export default function MapWidget({ sourceLang, targetLang, getLanguageName }: M
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       });
+
+      setMapComponents({
+        MapContainer: ReactLeaflet.MapContainer,
+        TileLayer: ReactLeaflet.TileLayer,
+        Marker: ReactLeaflet.Marker,
+        Popup: ReactLeaflet.Popup,
+      });
     });
+  }, []);
+
+  if (!MapComponents) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-black/5 dark:bg-white/5">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-xs font-medium">Memuat Peta...</span>
+      </div>
+    );
   }
+
+  const { MapContainer, TileLayer, Marker, Popup } = MapComponents;
 
   return (
     <MapContainer
