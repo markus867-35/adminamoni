@@ -2,15 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRightLeft, Copy, Check, Globe, Sparkles, Trash2, MapPin } from 'lucide-react';
-import dynamicImport from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
-
-// Import komponen Leaflet secara dinamis khusus client-side melalui variabel terpisah
-const MapContainer = dynamicImport(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
-const TileLayer = dynamicImport(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamicImport(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamicImport(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
+import { ArrowRightLeft, Copy, Check, Globe, Sparkles, Trash2, MapPin, Search } from 'lucide-react';
 
 export default function TranslationPage() {
   const [sourceLang, setSourceLang] = useState('id');
@@ -19,25 +11,9 @@ export default function TranslationPage() {
   const [translatedText, setTranslatedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isMapSyncing, setIsMapSyncing] = useState(true);
 
-  useEffect(() => {
-    // Perbaikan icon marker Leaflet agar tidak hilang saat runtime client
-    import('leaflet').then((L) => {
-      // @ts-ignore
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      });
-    });
-
-    const timer = setTimeout(() => {
-      setIsMapSyncing(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('Istana Casino Poipet');
+  const [mapLocation, setMapLocation] = useState('Istana Casino Poipet');
 
   const languages = [
     { code: 'ar', name: 'Arab' },
@@ -55,24 +31,6 @@ export default function TranslationPage() {
     { code: 'ru', name: 'Rusia' },
     { code: 'es', name: 'Spanyol' },
   ];
-
-  const langCoordinates: Record<string, [number, number]> = {
-    id: [-0.7893, 113.9213],
-    en: [55.3781, -3.4360],
-    es: [40.4637, -3.7492],
-    fr: [46.2276, 2.2137],
-    de: [51.1657, 10.4515],
-    ja: [36.2048, 138.2529],
-    ar: [23.8859, 45.0792],
-    zh: [35.8617, 104.1954],
-    hi: [20.5937, 78.9629],
-    ru: [61.5240, 105.3188],
-  };
-
-  const getCoordinates = (code: string): [number, number] => {
-    const baseCode = code.split('-')[0];
-    return langCoordinates[baseCode] || [-0.7893, 113.9213];
-  };
 
   useEffect(() => {
     if (!sourceText.trim()) {
@@ -125,9 +83,11 @@ export default function TranslationPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getLanguageName = (code: string) => {
-    const found = languages.find((l) => l.code === code);
-    return found ? found.name : code;
+  const handleSearchMap = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setMapLocation(searchQuery);
+    }
   };
 
   return (
@@ -135,7 +95,7 @@ export default function TranslationPage() {
       <div className="w-full max-w-10xl mx-auto flex flex-col gap-6">
         
         {/* Header Judul */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-4 rounded-2xl backdrop-blur-md">
           <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-500">
             <Globe className="w-6 h-6" />
           </div>
@@ -237,57 +197,45 @@ export default function TranslationPage() {
           </div>
         </div>
 
-        {/* Peta Dunia Interaktif */}
-        <div className="w-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-2xl p-4 shadow-xl backdrop-blur-md flex flex-col gap-3">
-          <div className="flex items-center justify-between flex-wrap px-2">
+        {/* Google Maps Interaktif & Kolom Pencarian Tempat */}
+        <div className="w-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 rounded-2xl p-4 shadow-xl backdrop-blur-md flex flex-col gap-4">
+          <div className="flex items-center justify-between flex-wrap gap-4 px-2">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-blue-500" />
-              <h2 className="text-xs font-semibold tracking-wide">Peta Interaktif Wilayah Bahasa</h2>
+              <h2 className="text-xs font-semibold tracking-wide">Pencarian & Peta Google Maps</h2>
             </div>
-            <div className="flex items-center gap-4 text-xs">
-              <span>Asal: <strong className="text-blue-500">{getLanguageName(sourceLang)}</strong></span>
-              <span>Tujuan: <strong className="text-emerald-500">{getLanguageName(targetLang)}</strong></span>
-            </div>
+            
+            {/* Form Input Cari Lokasi */}
+            <form onSubmit={handleSearchMap} className="flex items-center gap-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari tempat atau kota..."
+                  className="text-xs px-3 py-2 rounded-xl border border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/50 focus:outline-none focus:border-blue-500 transition w-60"
+                />
+              </div>
+              <button
+                type="submit"
+                className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition cursor-pointer flex items-center justify-center shadow-sm"
+                title="Cari Lokasi di Peta"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
           </div>
 
-          <div className="relative w-full h-[800px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden z-0">
-            <MapContainer
-              center={[3.1390, 101.6869]}
-              zoom={10}
-              maxZoom={19}
-              scrollWheelZoom={true}
-              style={{ width: '100%', height: '100%', zIndex: 1 }}
-              attributionControl={false}
-            >
-              <TileLayer 
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" 
-                maxZoom={19}
-              />
-              
-              <Marker position={getCoordinates(sourceLang)}>
-                <Popup>
-                  <div className="text-xs font-sans">
-                    <strong>Bahasa Asal:</strong> {getLanguageName(sourceLang)}
-                  </div>
-                </Popup>
-              </Marker>
-
-              <Marker position={getCoordinates(targetLang)}>
-                <Popup>
-                  <div className="text-xs font-sans">
-                    <strong>Bahasa Tujuan:</strong> {getLanguageName(targetLang)}
-                  </div>
-                </Popup>
-              </Marker>
-            </MapContainer>
-
-            {/* Overlay Sinkronisasi */}
-            {isMapSyncing && (
-              <div className="absolute inset-0 bg-white/70 dark:bg-slate-950/70 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2 transition-opacity duration-500">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xs font-medium tracking-wide">Menyinkronkan Peta...</span>
-              </div>
-            )}
+          {/* Bingkai Google Maps Embed dengan Parameter Minimalis */}
+          <div className="relative w-full h-[800px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden bg-black/10 shadow-inner">
+            <iframe
+              title="Google Maps Location"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              loading="lazy"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(mapLocation)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+            ></iframe>
           </div>
         </div>
 
