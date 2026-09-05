@@ -32,6 +32,7 @@ export default function TranslationPage() {
     { code: 'es', name: 'Spanyol' },
   ];
 
+  // Terjemahan Client-Side langsung ke Google GTX tanpa error 500 API backend
   useEffect(() => {
     if (!sourceText.trim()) {
       setTranslatedText('');
@@ -41,18 +42,15 @@ export default function TranslationPage() {
     setIsLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            q: sourceText,
-            source: sourceLang,
-            target: targetLang,
-          }),
-        });
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(sourceText)}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Gagal terjemahan');
+        
         const data = await response.json();
-        if (data && data.translatedText) {
-          setTranslatedText(data.translatedText);
+        if (data && data[0]) {
+          const result = data[0].map((item: any) => item[0]).join('');
+          setTranslatedText(result);
         } else {
           setTranslatedText('Gagal menerjemahkan teks.');
         }
@@ -92,7 +90,7 @@ export default function TranslationPage() {
 
   return (
     <div className="min-h-screen text-[var(--foreground,inherit)] bg-[var(--background,transparent)] p-4 md:p-8 flex flex-col items-center justify-center transition-colors duration-300">
-      <div className="w-full max-w-10xl mx-auto flex flex-col gap-6">
+      <div className="w-full max-w-[1400px] mx-auto flex flex-col gap-6">
         
         {/* Header Judul */}
         <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-4 rounded-2xl backdrop-blur-md">
@@ -226,7 +224,7 @@ export default function TranslationPage() {
             </form>
           </div>
 
-          {/* Bingkai Google Maps Embed dengan Parameter Minimalis */}
+          {/* Bingkai Google Maps Embed dengan Lapisan Pelindung (Overlay Block) */}
           <div className="relative w-full h-[800px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden bg-black/10 shadow-inner">
             <iframe
               title="Google Maps Location"
@@ -236,6 +234,16 @@ export default function TranslationPage() {
               loading="lazy"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(mapLocation)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
             ></iframe>
+
+            {/* Kotak Transparan Penahan Klik (Overlay) agar tombol pop-up Google tidak bisa diklik dan membuka tab baru */}
+            <div 
+              className="absolute top-3 right-3 w-12 h-12 z-10 cursor-pointer bg-transparent"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              title="Area Terkunci"
+            ></div>
           </div>
         </div>
 
