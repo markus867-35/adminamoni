@@ -1,19 +1,15 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React from 'react';
+import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
-// Memperbaiki masalah icon default marker Leaflet yang sering hilang di Next.js
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+// Import komponen react-leaflet secara dinamis di dalam file widget agar aman dari SSR
+const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
+const Marker = dynamic(() => import('react-leaflet').then((m) => m.Marker), { ssr: false });
+const Popup = dynamic(() => import('react-leaflet').then((m) => m.Popup), { ssr: false });
 
-interface MapComponentProps {
+interface MapWidgetProps {
   sourceLang: string;
   targetLang: string;
   getLanguageName: (code: string) => string;
@@ -37,20 +33,18 @@ const getCoordinates = (code: string): [number, number] => {
   return langCoordinates[baseCode] || [-0.7893, 113.9213];
 };
 
-export default function MapComponent({ sourceLang, targetLang, getLanguageName }: MapComponentProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-black/5 dark:bg-white/5">
-        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <span className="text-xs font-medium">Memuat Peta...</span>
-      </div>
-    );
+export default function MapWidget({ sourceLang, targetLang, getLanguageName }: MapWidgetProps) {
+  // Perbaikan icon marker Leaflet agar hanya berjalan di browser (Client-side)
+  if (typeof window !== 'undefined') {
+    import('leaflet').then((L) => {
+      // @ts-ignore
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      });
+    });
   }
 
   return (
@@ -61,7 +55,6 @@ export default function MapComponent({ sourceLang, targetLang, getLanguageName }
       scrollWheelZoom={true}
       style={{ width: '100%', height: '100%', zIndex: 1 }}
       attributionControl={false}
-      key="main-map-container"
     >
       <TileLayer 
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" 
