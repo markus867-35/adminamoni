@@ -1,26 +1,16 @@
 'use client';
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import { ArrowRightLeft, Copy, Check, Globe, Sparkles, Trash2, MapPin } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 
-// Perbaikan icon marker Leaflet agar tidak hilang
-if (typeof window !== 'undefined') {
-  // @ts-ignore
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  });
-}
-
-// Import komponen Leaflet secara dinamis khusus client-side (SSR false)
-const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
+// Import komponen Leaflet secara dinamis khusus client-side melalui variabel terpisah
+const MapContainer = dynamicImport(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
+const TileLayer = dynamicImport(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
+const Marker = dynamicImport(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
+const Popup = dynamicImport(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
 
 export default function TranslationPage() {
   const [sourceLang, setSourceLang] = useState('id');
@@ -29,34 +19,25 @@ export default function TranslationPage() {
   const [translatedText, setTranslatedText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [isMapSyncing, setIsMapSyncing] = useState(true);
 
   useEffect(() => {
-    setIsMounted(true);
+    // Perbaikan icon marker Leaflet agar tidak hilang saat runtime client
+    import('leaflet').then((L) => {
+      // @ts-ignore
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      });
+    });
+
     const timer = setTimeout(() => {
       setIsMapSyncing(false);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
-
-  const langCoordinates: Record<string, [number, number]> = {
-    id: [-0.7893, 113.9213], // Indonesia
-    en: [55.3781, -3.4360],  // Inggris / UK
-    es: [40.4637, -3.7492],  // Spanyol
-    fr: [46.2276, 2.2137],   // Prancis
-    de: [51.1657, 10.4515],  // Jerman
-    ja: [36.2048, 138.2529], // Jepang
-    ar: [23.8859, 45.0792],  // Arab
-    zh: [35.8617, 104.1954], // Tiongkok
-    hi: [20.5937, 78.9629],  // India
-    ru: [61.5240, 105.3188], // Rusia
-  };
-
-  const getCoordinates = (code: string): [number, number] => {
-    const baseCode = code.split('-')[0];
-    return langCoordinates[baseCode] || [-0.7893, 113.9213];
-  };
 
   const languages = [
     { code: 'ar', name: 'Arab' },
@@ -74,6 +55,24 @@ export default function TranslationPage() {
     { code: 'ru', name: 'Rusia' },
     { code: 'es', name: 'Spanyol' },
   ];
+
+  const langCoordinates: Record<string, [number, number]> = {
+    id: [-0.7893, 113.9213],
+    en: [55.3781, -3.4360],
+    es: [40.4637, -3.7492],
+    fr: [46.2276, 2.2137],
+    de: [51.1657, 10.4515],
+    ja: [36.2048, 138.2529],
+    ar: [23.8859, 45.0792],
+    zh: [35.8617, 104.1954],
+    hi: [20.5937, 78.9629],
+    ru: [61.5240, 105.3188],
+  };
+
+  const getCoordinates = (code: string): [number, number] => {
+    const baseCode = code.split('-')[0];
+    return langCoordinates[baseCode] || [-0.7893, 113.9213];
+  };
 
   useEffect(() => {
     if (!sourceText.trim()) {
@@ -133,14 +132,8 @@ export default function TranslationPage() {
 
   return (
     <div className="min-h-screen text-[var(--foreground,inherit)] bg-[var(--background,transparent)] p-4 md:p-8 flex flex-col items-center justify-center transition-colors duration-300">
-      <div className="w-full max-w-9xl mx-auto flex flex-col gap-6">
-        {/* Tambahkan tag link Leaflet CSS di sini */}
-      <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossOrigin=""
-      />
+      <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+        
         {/* Header Judul */}
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-500">
@@ -189,7 +182,6 @@ export default function TranslationPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 border-x border-b border-black/10 dark:border-white/10 rounded-b-2xl bg-black/5 dark:bg-white/[0.02] backdrop-blur-md">
-            
             <div className="p-4 flex flex-col justify-between border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10">
               <textarea
                 rows={5}
@@ -198,7 +190,6 @@ export default function TranslationPage() {
                 placeholder="Ketik sesuatu di sini..."
                 className="w-full bg-transparent placeholder-black/40 dark:placeholder-white/40 text-sm resize-none focus:outline-none"
               />
-              
               <div className="flex items-center justify-between pt-4 border-t border-black/10 dark:border-white/10 mt-2 opacity-80">
                 <span className="text-xs">{sourceText.length} karakter</span>
                 {sourceText && (
@@ -243,7 +234,6 @@ export default function TranslationPage() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -260,44 +250,36 @@ export default function TranslationPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-[800px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden z-0">
-            {isMounted && MapContainer && TileLayer && Marker && Popup ? (
-              <MapContainer
-                center={[3.1390, 101.6869]}
-                zoom={10}
+          <div className="relative w-full h-[400px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden z-0">
+            <MapContainer
+              center={[3.1390, 101.6869]}
+              zoom={10}
+              maxZoom={19}
+              scrollWheelZoom={true}
+              style={{ width: '100%', height: '100%', zIndex: 1 }}
+              attributionControl={false}
+            >
+              <TileLayer 
+                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" 
                 maxZoom={19}
-                scrollWheelZoom={true}
-                style={{ width: '100%', height: '100%', zIndex: 1 }}
-                attributionControl={false}
-                key="single-file-map"
-              >
-                <TileLayer 
-                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" 
-                  maxZoom={19}
-                />
-                
-                <Marker position={getCoordinates(sourceLang)}>
-                  <Popup>
-                    <div className="text-xs font-sans">
-                      <strong>Bahasa Asal:</strong> {getLanguageName(sourceLang)}
-                    </div>
-                  </Popup>
-                </Marker>
+              />
+              
+              <Marker position={getCoordinates(sourceLang)}>
+                <Popup>
+                  <div className="text-xs font-sans">
+                    <strong>Bahasa Asal:</strong> {getLanguageName(sourceLang)}
+                  </div>
+                </Popup>
+              </Marker>
 
-                <Marker position={getCoordinates(targetLang)}>
-                  <Popup>
-                    <div className="text-xs font-sans">
-                      <strong>Bahasa Tujuan:</strong> {getLanguageName(targetLang)}
-                    </div>
-                  </Popup>
-                </Marker>
-              </MapContainer>
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-black/5 dark:bg-white/5">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xs font-medium">Memuat Peta...</span>
-              </div>
-            )}
+              <Marker position={getCoordinates(targetLang)}>
+                <Popup>
+                  <div className="text-xs font-sans">
+                    <strong>Bahasa Tujuan:</strong> {getLanguageName(targetLang)}
+                  </div>
+                </Popup>
+              </Marker>
+            </MapContainer>
 
             {/* Overlay Sinkronisasi */}
             {isMapSyncing && (
