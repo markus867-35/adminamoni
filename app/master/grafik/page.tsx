@@ -132,7 +132,7 @@ export default function TranslationPage() {
 
   return (
     <div className="min-h-screen text-[var(--foreground,inherit)] bg-[var(--background,transparent)] p-4 md:p-8 flex flex-col items-center justify-center transition-colors duration-300">
-      <div className="w-full max-w-7xl mx-auto flex flex-col gap-6">
+      <div className="w-full max-w-10xl mx-auto flex flex-col gap-6">
         
         {/* Header Judul */}
         <div className="flex items-center gap-3">
@@ -250,7 +250,7 @@ export default function TranslationPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-[400px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden z-0">
+          <div className="relative w-full h-[800px] rounded-xl border border-black/10 dark:border-white/10 overflow-hidden z-0">
             <MapContainer
               center={[3.1390, 101.6869]}
               zoom={10}
