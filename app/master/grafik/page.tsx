@@ -90,7 +90,7 @@ export default function TranslationPage() {
 
   return (
     <div className="min-h-screen text-[var(--foreground,inherit)] bg-[var(--background,transparent)] p-4 md:p-8 flex flex-col items-center justify-center transition-colors duration-300">
-      <div className="w-full max-w-[1400px] mx-auto flex flex-col gap-6">
+      <div className="w-full max-w-[20000px] mx-auto flex flex-col gap-6">
         
         {/* Header Judul */}
         <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-4 rounded-2xl backdrop-blur-md">

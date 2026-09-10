@@ -404,6 +404,7 @@ export default function Sidebar({ isOpen }) {
                   <Link href="/master/operator" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Operator</span></Link>
                   <Link href="/master/security" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Security</span></Link>
                   <Link href="/master/grafik" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slate-400 shrink-0" /><span>Grafik</span></Link>
+                  <Link href="/master/login" className="flex items-center px-8 py-2.5 hover:text-white hover:bg-[#222d3d] transition"><ChevronRight className="w-3 h-3 mr-2 text-slae-400 shrik-0" /><span>Template-Login</span> </Link>
                 </div>
               )}
             </div>
