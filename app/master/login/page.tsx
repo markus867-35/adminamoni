@@ -22,6 +22,10 @@ export default function AdminLoginTemplatesPage() {
 
   const [templates, setTemplates] = useState<LoginTemplate[]>([]);
   const [activeTabs, setActiveTabs] = useState<{ [key: string]: 'preview' | 'code' }>({});
+  
+  // State untuk mode Viewport (Desktop / Mobile) per template
+  const [activeViewModes, setActiveViewModes] = useState<{ [key: string]: 'desktop' | 'mobile' }>({});
+
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
   // State untuk mode Edit
@@ -58,10 +62,15 @@ export default function AdminLoginTemplatesPage() {
       } else if (data) {
         setTemplates(data);
         const tabs: { [key: string]: 'preview' | 'code' } = {};
+        const viewModes: { [key: string]: 'desktop' | 'mobile' } = {};
+        
         data.forEach((item) => {
           tabs[item.id] = 'preview';
+          viewModes[item.id] = 'desktop';
         });
+        
         setActiveTabs(tabs);
+        setActiveViewModes(viewModes);
       }
     } catch (err) {
       console.error('Error:', err);
@@ -117,6 +126,7 @@ export default function AdminLoginTemplatesPage() {
         } else if (data && data.length > 0) {
           setTemplates([data[0], ...templates]);
           setActiveTabs({ ...activeTabs, [data[0].id]: 'preview' });
+          setActiveViewModes({ ...activeViewModes, [data[0].id]: 'desktop' });
           resetForm();
         }
       }
@@ -204,8 +214,11 @@ export default function AdminLoginTemplatesPage() {
     setActiveTabs({ ...activeTabs, [id]: tab });
   };
 
+  const setActiveViewMode = (id: string | number, mode: 'desktop' | 'mobile') => {
+    setActiveViewModes({ ...activeViewModes, [id]: mode });
+  };
+
   return (
-    // Menggunakan variabel global CSS untuk background dan text utama halaman
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] p-4 md:p-8 transition-colors duration-300">
       
       <header className="max-w-8xl mx-auto mb-8 border-b border-slate-300 dark:border-slate-800 pb-4 flex items-center justify-between">
@@ -217,7 +230,7 @@ export default function AdminLoginTemplatesPage() {
 
       <main className="max-w-7xl mx-auto space-y-10">
         
-        {/* FORM INPUT / EDIT - Warna background menyesuaikan mode terang/gelap */}
+        {/* FORM INPUT / EDIT */}
         <section className="bg-white dark:bg-[#111720] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl transition-colors duration-300">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
@@ -293,7 +306,6 @@ export default function AdminLoginTemplatesPage() {
           </form>
         </section>
 
-
         {/* DAFTAR TEMPLATE */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
@@ -304,12 +316,13 @@ export default function AdminLoginTemplatesPage() {
           {templates.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400 italic">Belum ada template tersimpan di database.</p>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
               {templates.map((item) => {
                 const currentTab = activeTabs[item.id] || 'preview';
+                const currentViewMode = activeViewModes[item.id] || 'desktop';
 
                 return (
-                  <div key={item.id} className="bg-white dark:bg-[#111720] scrollbar-transparent border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between transition-colors duration-300">
+                  <div key={item.id} className="bg-white dark:bg-[#111720] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between transition-colors duration-300">
                     
                     {/* Header Kartu & Tombol Aksi */}
                     <div className="bg-slate-100 dark:bg-[#161f2c] px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col gap-3 transition-colors duration-300">
@@ -381,35 +394,62 @@ export default function AdminLoginTemplatesPage() {
                     {/* Preview atau Source Code dengan tinggi 750px */}
                     <div className="p-4 bg-slate-50 dark:bg-[#0d1117] flex-1 transition-colors duration-300">
                       {currentTab === 'preview' ? (
-  <div className={`w-full h-[750px] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden relative ${isDarkMode ? 'bg-[#0b0f19]' : 'bg-white'}`}>
-    <iframe 
-      srcDoc={`<!DOCTYPE html>
-      <html class="${isDarkMode ? 'dark' : ''}">
-      <head>
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-        <style>
-          :root { --background: #f4f6f9; --foreground: #171717; }
-          .dark { --background: #0b0f19; --foreground: #f1f5f9; }
-          body { background: var(--background); color: var(--foreground); margin: 0; padding: 16px; font-family: Arial, Helvetica, sans-serif; }
-        </style>
-      </head>
-      <body style="background: ${isDarkMode ? '#0b0f19' : '#ffffff'}; color: ${isDarkMode ? '#f1f5f9' : '#171717'};">
-        ${item.code}
-      </body>
-      </html>`}
-      title={item.title}
-      className="w-full h-full border-0"
-      sandbox="allow-scripts"
-    />
-  </div>
-) : (
-  /* Tambahkan custom scrollbar styling di sini */
-  <div className="bg-slate-900 dark:bg-[#161f2c] rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 h-[750px] overflow-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-500">
-    <pre className="text-[11px] font-mono text-yellow-600 dark:text-yellow-200/90 leading-relaxed">
-      <code>{item.code}</code>
-    </pre>
-  </div>
-)}
+                        <div className={`w-full h-[750px] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden relative flex flex-col ${isDarkMode ? 'bg-[#0b0f19]' : 'bg-white'}`}>
+                          
+                          {/* Sub-toolbar untuk Switch Desktop / Mobile View */}
+                          <div className="bg-slate-200/60 dark:bg-slate-900/80 px-4 py-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-600 dark:text-slate-400">Viewport Mode:</span>
+                            <div className="flex bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700">
+                              <button
+                                type="button"
+                                onClick={() => setActiveViewMode(item.id, 'desktop')}
+                                className={`px-3 py-1 rounded-md font-medium transition cursor-pointer ${currentViewMode === 'desktop' ? 'bg-yellow-500 text-slate-950' : 'text-slate-500 dark:text-slate-400'}`}
+                              >
+                                🖥️ Desktop
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveViewMode(item.id, 'mobile')}
+                                className={`px-3 py-1 rounded-md font-medium transition cursor-pointer ${currentViewMode === 'mobile' ? 'bg-yellow-500 text-slate-950' : 'text-slate-500 dark:text-slate-400'}`}
+                              >
+                                📱 Mobile
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Area Container Iframe dengan Lebar Dinamis */}
+                          <div className="flex-1 w-full flex items-center justify-center overflow-auto p-4 bg-slate-100 dark:bg-[#080b12]">
+                            <div className={`h-full transition-all duration-300 rounded-xl overflow-hidden shadow-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-[#0b0f19] ${currentViewMode === 'mobile' ? 'w-[380px] max-w-full' : 'w-full'}`}>
+<iframe 
+  srcDoc={`<!DOCTYPE html>
+  <html class="${isDarkMode ? 'dark' : ''}">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+      :root { --background: #f4f6f9; --foreground: #171717; }
+      .dark { --background: #0b0f19; --foreground: #f1f5f9; }
+      body { color: ${isDarkMode ? '#f1f5f9' : '#171717'}; margin: 0; padding: 16px; font-family: Arial, Helvetica, sans-serif; }
+    </style>
+  </head>
+  <body>
+    ${item.code}
+  </body>
+  </html>`}
+  title={item.title}
+  className="w-full h-full border-0"
+  sandbox="allow-scripts"
+/>
+                            </div>
+                          </div>
+
+                        </div>
+                      ) : (
+                        <div className="bg-slate-900 dark:bg-[#161f2c] rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 h-[750px] overflow-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-500">
+                          <pre className="text-[11px] font-mono text-yellow-600 dark:text-yellow-200/90 leading-relaxed">
+                            <code>{item.code}</code>
+                          </pre>
+                        </div>
+                      )}
                     </div>
 
                   </div>
