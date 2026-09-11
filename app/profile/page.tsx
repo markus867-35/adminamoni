@@ -432,7 +432,7 @@ const handleConfirmUpload = async () => {
               title="Scroll mouse, double-click (klik 2x), atau klik tahan lalu geser"
             />
           </div>
-          <p style="font-size: 11px; color: #94a3b8; margin-top: 10px; text-align: center;">*Scroll mouse, <b>klik 2x</b>, atau <b>klik & geser (drag)</b> gambar saat di-zoom</p>
+          
         `,
         width: '450px',
         showCloseButton: true,
@@ -441,7 +441,7 @@ const handleConfirmUpload = async () => {
         color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#171717',
       });
     }}
-    className={`relative w-36 h-36 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner transition ${
+    className={`relative w-55 h-55 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner transition ${
       avatarUrl ? 'cursor-pointer group hover:ring-2 hover:ring-yellow-500' : 'cursor-default'
     }`}
     title={avatarUrl ? "Klik untuk melihat foto" : "Belum ada foto"}
