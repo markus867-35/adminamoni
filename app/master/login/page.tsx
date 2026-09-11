@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -18,6 +19,7 @@ export default function AdminLoginTemplatesPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newCode, setNewCode] = useState('');
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [templates, setTemplates] = useState<LoginTemplate[]>([]);
@@ -332,11 +334,11 @@ export default function AdminLoginTemplatesPage() {
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{item.description}</p>
                         </div>
 
-                        {/* TOMBOL AKSI: EDIT, DOWNLOAD, HAPUS */}
+                       {/* TOMBOL AKSI: EDIT, DOWNLOAD, HAPUS */}
                         <div className="flex items-center gap-1.5">
                           <button 
                             type="button"
-                            onClick={() => handleEditClick(item)}
+                            onClick={() => router.push(`/master/login/edit/${item.id}`)}
                             title="Edit Template"
                             className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 rounded-lg text-xs transition cursor-pointer border border-blue-500/30"
                           >
