@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [previewImageSrc, setPreviewImageSrc] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
+  const [imageScale, setImageScale] = useState<number>(1);
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imagePositionX, setImagePositionX] = useState(50); // <-- TAMBAHKAN INI
 
@@ -498,26 +499,46 @@ const handleConfirmUpload = async () => {
 
       {/* Modal Pengaturan Posisi Foto (Crop Sederhana) */}
 {/* Modal Pengaturan Posisi Foto (Geser Atas-Bawah & Kiri-Kanan) */}
+{/* Modal Pengaturan Posisi & Skala Foto */}
 {showCropModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 w-full max-w-sm space-y-4 shadow-xl">
       <h3 className="text-sm font-semibold text-slate-800 dark:text-white text-center">
-        Sesuaikan Posisi Foto Profil
+        Sesuaikan Posisi & Ukuran Foto
       </h3>
 
       {/* Preview Lingkaran */}
       <div className="flex justify-center">
-        <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500 shadow-md bg-slate-100">
+        <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-blue-500 shadow-md bg-slate-100 flex items-center justify-center">
           {previewImageSrc && (
             <img 
               src={previewImageSrc} 
               alt="Crop Preview" 
-              className="absolute w-full h-full object-cover"
-              // Mengatur posisi X dan Y secara bersamaan
-              style={{ objectPosition: `${imagePositionX}% ${imagePositionY}%` }}
+              className="absolute w-full h-full object-cover transition-transform duration-75"
+              style={{ 
+                objectPosition: `${imagePositionX}% ${imagePositionY}%`,
+                transform: `scale(${imageScale})` 
+              }}
             />
           )}
         </div>
+      </div>
+
+      {/* Slider Zoom / Perbesar & Perkecil */}
+      <div className="space-y-1">
+        <div className="flex justify-between text-xs text-slate-500">
+          <span>Perbesar / Perkecil (Zoom):</span>
+          <span>{imageScale.toFixed(1)}x</span>
+        </div>
+        <input 
+          type="range" 
+          min="1" 
+          max="3" 
+          step="0.1"
+          value={imageScale} 
+          onChange={(e) => setImageScale(Number(e.target.value))}
+          className="w-full accent-blue-600 cursor-pointer"
+        />
       </div>
 
       {/* Slider Geser Kiri - Kanan */}
