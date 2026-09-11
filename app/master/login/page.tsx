@@ -223,14 +223,14 @@ export default function AdminLoginTemplatesPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] p-4 md:p-8 transition-colors duration-300">
       
-      <header className="max-w-8xl mx-auto mb-8 border-b border-slate-300 dark:border-slate-800 pb-4 flex items-center justify-between">
+      <header className="max-w-10xl mx-auto mb-8 border-b border-slate-300 dark:border-slate-800 pb-4 flex items-center justify-between">
         <div>
           <span className="bg-yellow-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-xs tracking-wider">OLG ADMIN</span>
           <h1 className="text-2xl font-bold tracking-wide mt-2">Login Template Manager</h1>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto space-y-10">
+      <main className="max-w-10xl mx-auto space-y-10">
         
         {/* FORM INPUT / EDIT */}
         <section className="bg-white dark:bg-[#111720] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl transition-colors duration-300">
