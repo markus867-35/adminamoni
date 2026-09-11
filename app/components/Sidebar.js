@@ -2,21 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
-  LayoutDashboard, 
-  ArrowLeftRight, 
-  Users, 
-  Tag, 
-  ChevronDown,
-  ChevronRight,
-  Landmark,
-  FileText,
-  Dices,
-  Database,
-  Settings,
-  Wrench,
-  Server,
-  ChevronUp
+  LayoutDashboard, ArrowLeftRight, Users, Tag, ChevronDown, ChevronRight, Landmark, FileText, Dices, Database, Settings, Wrench, Server, ChevronUp, User
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -27,6 +15,7 @@ const supabase = createClient(
 
 export default function Sidebar({ isOpen }) {
   const [adminName, setAdminName] = useState('Admin');
+  const [adminAvatarUrl, setAdminAvatarUrl] = useState('');
   const [allowedMenus, setAllowedMenus] = useState(null);
 
   const [openMenus, setOpenMenus] = useState({
@@ -56,14 +45,21 @@ export default function Sidebar({ isOpen }) {
       if (name) {
         setAdminName(name);
 
+        // Ambil allowed_menus DAN avatar / foto profil dari tabel admins
+        // (Sesuaikan nama kolom foto di database Anda, misal: 'avatar_url' atau 'foto')
         const { data, error } = await supabase
           .from('admins')
-          .select('allowed_menus')
+          .select('allowed_menus, avatar_url') 
           .eq('username', name)
           .single();
 
-        if (!error && data && data.allowed_menus) {
-          setAllowedMenus(data.allowed_menus);
+        if (!error && data) {
+          if (data.allowed_menus) {
+            setAllowedMenus(data.allowed_menus);
+          }
+          if (data.avatar_url) {
+            setAdminAvatarUrl(data.avatar_url);
+          }
         }
       }
     };
@@ -410,12 +406,29 @@ export default function Sidebar({ isOpen }) {
             </div>
           )}
 
-        </nav>
+</nav>
       </div>
 
-      <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0">
-        <p className="tracking-wider text-[15px] text-slate-400">Login sebagai:</p>
-        <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
+      <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center space-x-3">
+        {/* Foto Profil Admin */}
+        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-700 bg-slate-800 shrink-0 flex items-center justify-center">
+          {adminAvatarUrl ? (
+            <Image 
+              src={adminAvatarUrl} 
+              alt="Foto Profil" 
+              fill 
+              className="object-cover"
+            />
+          ) : (
+            <User className="w-5 h-5 text-slate-400" />
+          )}
+        </div>
+
+        {/* Teks Informasi */}
+        <div className="overflow-hidden">
+          <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
+          <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
+        </div>
       </div>
     </aside>
   );
