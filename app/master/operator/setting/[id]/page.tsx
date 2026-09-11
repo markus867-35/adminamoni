@@ -205,7 +205,7 @@ export default function AdminSettingPage() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-120px)] justify-between space-y-6">
-      <div className="space-y-6 max-w-4xl mx-auto w-full">
+      <div className="space-y-6 max-w-10xl mx-auto w-full">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-normal text-slate-800 dark:text-white">Setting Admin</h1>
