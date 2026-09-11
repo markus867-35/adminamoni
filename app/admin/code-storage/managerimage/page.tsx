@@ -181,7 +181,7 @@ export default function AdminImageManager() {
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
+    <div className="p-8 max-w-10xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
       <h1 className="text-2xl font-bold mb-6">Manajemen Gambar</h1>
 
       {/* Bagian Upload Folder */}

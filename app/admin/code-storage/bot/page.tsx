@@ -219,7 +219,7 @@ const groupedFiles = filteredFiles.reduce((acc, file) => {
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
+    <div className="p-8 max-w-10xl mx-auto text-gray-900 dark:text-gray-100 transition-colors">
       <h1 className="text-2xl font-bold mb-6">Code Repository & Manager</h1>
 
       <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-800 p-6 rounded-xl mb-4 flex flex-col md:flex-row items-center gap-4 shadow-sm">
