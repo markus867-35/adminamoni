@@ -16,6 +16,7 @@ const supabase = createClient(
 export default function Sidebar({ isOpen }) {
   const [adminName, setAdminName] = useState('Admin');
   const [adminAvatarUrl, setAdminAvatarUrl] = useState('');
+  const [adminList, setAdminList] = useState([]); // <-- TAMBAHKAN INI
   const [allowedMenus, setAllowedMenus] = useState(null);
 
   const [openMenus, setOpenMenus] = useState({
@@ -41,45 +42,36 @@ export default function Sidebar({ isOpen }) {
 
 useEffect(() => {
     const fetchAdminData = async () => {
-      // Ambil nama admin yang sedang aktif login
+      // 1. Ambil nama admin yang sedang aktif login untuk teks di sebelah kiri
       const name = localStorage.getItem('admin_name');
       if (name) {
         setAdminName(name);
 
-        // Ambil data menu akses DAN avatar_url milik admin tersebut dari Supabase secara spesifik
-        const { data, error } = await supabase
+        // Ambil akses menu khusus untuk user yang sedang login
+        const { data: currentAdmin } = await supabase
           .from('admins')
-          .select('allowed_menus, avatar_url')
+          .select('allowed_menus')
           .eq('username', name)
           .single();
 
-        if (!error && data) {
-          if (data.allowed_menus) {
-            setAllowedMenus(data.allowed_menus);
-          }
-          // Pastikan avatar URL di-set sesuai database untuk user ini
-          if (data.avatar_url) {
-            setAdminAvatarUrl(data.avatar_url);
-            // Simpan juga ke localStorage agar langsung sinkron saat halaman direfresh
-            localStorage.setItem('admin_avatar', data.avatar_url);
-          } else {
-            setAdminAvatarUrl('');
-            localStorage.removeItem('admin_avatar');
-          }
+        if (currentAdmin?.allowed_menus) {
+          setAllowedMenus(currentAdmin.allowed_menus);
         }
+      }
+
+      // 2. Ambil SEMUA data admin dari tabel untuk ditampilkan berderet di kanan
+      const { data: allAdmins, error } = await supabase
+        .from('admins')
+        .select('username, avatar_url');
+
+      if (!error && allAdmins) {
+        setAdminList(allAdmins);
       }
     };
 
     fetchAdminData();
-
-    // Tambahan event listener agar sidebar otomatis update jika localStorage berubah di tab/session lain
-    const handleStorageChange = () => {
-      fetchAdminData();
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-  
+
   const isMenuAllowed = (menuId) => {
     if (!allowedMenus) return true; // Jika data kosong/super admin, tampilkan semua
     return allowedMenus.includes(menuId);
@@ -430,18 +422,32 @@ useEffect(() => {
           <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
         </div>
 
-        {/* Foto Profil Admin yang Sedang Login di Kanan */}
-        <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shrink-0 flex items-center justify-center shadow-md">
-          {adminAvatarUrl ? (
-            <Image 
-              src={adminAvatarUrl} 
-              alt={adminName} 
-              fill 
-              className="object-cover" 
-            />
+        {/* Daftar Foto Profil Berderet di Kanan (Stack Effect) */}
+        <div className="flex items-center -space-x-2 overflow-hidden shrink-0 py-1">
+          {adminList && adminList.length > 0 ? (
+            adminList.map((admin, index) => (
+              <div 
+                key={index} 
+                className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shadow-md shrink-0" 
+                title={admin.username}
+              >
+                {admin.avatar_url ? (
+                  <Image 
+                    src={admin.avatar_url} 
+                    alt={admin.username} 
+                    fill 
+                    className="object-cover" 
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-700 text-white text-[10px] font-bold">
+                    {admin.username ? admin.username.substring(0, 2).toUpperCase() : 'AD'}
+                  </div>
+                )}
+              </div>
+            ))
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-700 text-white text-xs font-bold">
-              {adminName ? adminName.substring(0, 2).toUpperCase() : 'AD'}
+            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 flex items-center justify-center">
+              <User className="w-5 h-5 text-slate-400" />
             </div>
           )}
         </div>
