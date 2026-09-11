@@ -344,52 +344,153 @@ const handleConfirmUpload = async () => {
               </div>
             </div>
 
-            {/* Kolom Kanan: Area Foto Profil yang Anda Tandai */}
-            <div className="flex flex-col items-center justify-center border-l border-slate-200 dark:border-slate-800 pl-0 md:pl-6 space-y-4">
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 self-start md:self-center">
-                Foto Profil
-              </label>
+{/* Kolom Kanan: Area Foto Profil */}
+<div className="flex flex-col items-center justify-center border-l border-slate-200 dark:border-slate-800 pl-0 md:pl-6 space-y-4">
+  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 self-start md:self-center">
+    Foto Profil
+  </label>
 
-              {/* Preview Lingkaran/Kotak Foto */}
-              <div className="relative w-50 h-50 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner">
-                {avatarUrl ? (
-                  <Image 
-                    src={avatarUrl} 
-                    alt="Foto Profil" 
-                    fill 
-                    className="object-cover"
-                  />
-                ) : (
-                  <User className="w-16 h-16 text-slate-400" />
-                )}
-              </div>
+<div 
+    onClick={() => {
+      if (!avatarUrl) return;
+      Swal.fire({
+        title: 'Foto Profil',
+        html: `
+          <div 
+            id="zoom-container"
+            style="display: flex; justify-content: center; align-items: center; padding: 10px; overflow: hidden; width: 100%; height: 320px; position: relative; cursor: grab;"
+            onmousedown="
+              let container = this;
+              container.isDragging = true;
+              container.startX = event.clientX - (container.scrollLeft || 0);
+              container.startY = event.clientY - (container.scrollTop || 0);
+              container.style.cursor = 'grabbing';
+            "
+            onmousemove="
+              let container = this;
+              if (!container.isDragging) return;
+              event.preventDefault();
+              container.scrollLeft = container.startX - event.clientX;
+              container.scrollTop = container.startY - event.clientY;
+            "
+            onmouseup="
+              let container = this;
+              container.isDragging = false;
+              container.style.cursor = 'grab';
+            "
+            onmouseleave="
+              let container = this;
+              container.isDragging = false;
+              container.style.cursor = 'grab';
+            "
+          >
+            <img 
+              id="zoomable-avatar" 
+              src="${avatarUrl}" 
+              alt="Foto Profil" 
+              style="width: 260px; height: 260px; border-radius: 50%; object-fit: cover; border: 4px solid #3b82f6; transition: transform 0.05s ease; transform: scale(1); transform-origin: center center;" 
+              data-scale="1"
+              onwheel="
+                event.preventDefault();
+                let img = this;
+                let container = document.getElementById('zoom-container');
+                let scale = parseFloat(img.dataset.scale || '1');
+                if (event.deltaY < 0) {
+                  scale += 0.2; 
+                } else {
+                  scale -= 0.2; 
+                  if (scale < 1) scale = 1; 
+                }
+                if (scale > 4) scale = 4; 
+                img.dataset.scale = scale;
+                img.style.transform = 'scale(' + scale + ')';
+                
+                if (scale > 1) {
+                  container.style.overflow = 'auto';
+                } else {
+                  container.style.overflow = 'hidden';
+                  container.scrollLeft = 0;
+                  container.scrollTop = 0;
+                }
+              "
+              ondblclick="
+                let img = this;
+                let container = document.getElementById('zoom-container');
+                let scale = parseFloat(img.dataset.scale || '1');
+                if (scale === 1) {
+                  scale = 2.5; 
+                  container.style.overflow = 'auto';
+                } else {
+                  scale = 1; 
+                  container.style.overflow = 'hidden';
+                  container.scrollLeft = 0;
+                  container.scrollTop = 0;
+                }
+                img.dataset.scale = scale;
+                img.style.transform = 'scale(' + scale + ')';
+              "
+              title="Scroll mouse, double-click (klik 2x), atau klik tahan lalu geser"
+            />
+          </div>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 10px; text-align: center;">*Scroll mouse, <b>klik 2x</b>, atau <b>klik & geser (drag)</b> gambar saat di-zoom</p>
+        `,
+        width: '450px',
+        showCloseButton: true,
+        showConfirmButton: false,
+        background: document.documentElement.classList.contains('dark') ? '#111720' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#171717',
+      });
+    }}
+    className={`relative w-36 h-36 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center shadow-inner transition ${
+      avatarUrl ? 'cursor-pointer group hover:ring-2 hover:ring-yellow-500' : 'cursor-default'
+    }`}
+    title={avatarUrl ? "Klik untuk melihat foto" : "Belum ada foto"}
+  >
+    {avatarUrl ? (
+      <>
+        <Image 
+          src={avatarUrl} 
+          alt="Foto Profil" 
+          fill 
+          // pointer-events-none agar klik menembus ke div pembungkus
+          className="object-cover pointer-events-none group-hover:scale-105 transition duration-300"
+        />
+        {/* Overlay hover text */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-[11px] font-semibold pointer-events-none">
+          🔍 Lihat Foto
+        </div>
+      </>
+    ) : (
+      <User className="w-16 h-16 text-slate-400" />
+    )}
+  </div>
 
-              {/* Tombol Ganti & Hapus Foto */}
-              <div className="flex flex-col space-y-2 w-full max-w-[180px]">
-                <label className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded text-center cursor-pointer flex items-center justify-center space-x-1.5 transition">
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>{uploading ? 'Mengunggah...' : 'Ganti Foto'}</span>
-<input 
-  type="file" 
-  accept="image/*" 
-  onChange={handleFileSelect} // Ubah ke fungsi handleFileSelect
-  disabled={uploading} 
-  className="hidden" 
-/>
-                </label>
+  {/* Tombol Ganti & Hapus Foto */}
+  <div className="flex flex-col space-y-2 w-full max-w-[180px]">
+    <label className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 px-3 rounded text-center cursor-pointer flex items-center justify-center space-x-1.5 transition">
+      <Upload className="w-3.5 h-3.5" />
+      <span>{uploading ? 'Mengunggah...' : 'Ganti Foto'}</span>
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={handleFileSelect} 
+        disabled={uploading} 
+        className="hidden" 
+      />
+    </label>
 
-                {avatarUrl && (
-                  <button 
-                    type="button" 
-                    onClick={handleDeleteAvatar}
-                    className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium py-2 px-3 rounded flex items-center justify-center space-x-1.5 transition cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Hapus Foto</span>
-                  </button>
-                )}
-              </div>
-            </div>
+    {avatarUrl && (
+      <button 
+        type="button" 
+        onClick={handleDeleteAvatar}
+        className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium py-2 px-3 rounded flex items-center justify-center space-x-1.5 transition cursor-pointer"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+        <span>Hapus Foto</span>
+      </button>
+    )}
+  </div>
+</div>
 
           </div>
         </div>
