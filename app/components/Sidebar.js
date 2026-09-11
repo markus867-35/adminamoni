@@ -39,17 +39,17 @@ export default function Sidebar({ isOpen }) {
     }));
   };
 
-  useEffect(() => {
-    const fetchAdminAccess = async () => {
+useEffect(() => {
+    const fetchAdminData = async () => {
+      // Ambil nama admin yang sedang aktif login
       const name = localStorage.getItem('admin_name');
       if (name) {
         setAdminName(name);
 
-        // Ambil allowed_menus DAN avatar / foto profil dari tabel admins
-        // (Sesuaikan nama kolom foto di database Anda, misal: 'avatar_url' atau 'foto')
+        // Ambil data menu akses DAN avatar_url milik admin tersebut dari Supabase secara spesifik
         const { data, error } = await supabase
           .from('admins')
-          .select('allowed_menus, avatar_url') 
+          .select('allowed_menus, avatar_url')
           .eq('username', name)
           .single();
 
@@ -57,16 +57,29 @@ export default function Sidebar({ isOpen }) {
           if (data.allowed_menus) {
             setAllowedMenus(data.allowed_menus);
           }
+          // Pastikan avatar URL di-set sesuai database untuk user ini
           if (data.avatar_url) {
             setAdminAvatarUrl(data.avatar_url);
+            // Simpan juga ke localStorage agar langsung sinkron saat halaman direfresh
+            localStorage.setItem('admin_avatar', data.avatar_url);
+          } else {
+            setAdminAvatarUrl('');
+            localStorage.removeItem('admin_avatar');
           }
         }
       }
     };
 
-    fetchAdminAccess();
-  }, []);
+    fetchAdminData();
 
+    // Tambahan event listener agar sidebar otomatis update jika localStorage berubah di tab/session lain
+    const handleStorageChange = () => {
+      fetchAdminData();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
   const isMenuAllowed = (menuId) => {
     if (!allowedMenus) return true; // Jika data kosong/super admin, tampilkan semua
     return allowedMenus.includes(menuId);
@@ -409,25 +422,28 @@ export default function Sidebar({ isOpen }) {
 </nav>
       </div>
 
-      <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center space-x-3">
-        {/* Foto Profil Admin */}
-        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-700 bg-slate-800 shrink-0 flex items-center justify-center">
+{/* Bagian Bawah Sidebar */}
+      <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center justify-between">
+        {/* Teks Informasi di Kiri */}
+        <div className="overflow-hidden text-right flex-1 mr-3">
+          <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
+          <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
+        </div>
+
+        {/* Foto Profil Admin yang Sedang Login di Kanan */}
+        <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shrink-0 flex items-center justify-center shadow-md">
           {adminAvatarUrl ? (
             <Image 
               src={adminAvatarUrl} 
-              alt="Foto Profil" 
+              alt={adminName} 
               fill 
-              className="object-cover"
+              className="object-cover" 
             />
           ) : (
-            <User className="w-5 h-5 text-slate-400" />
+            <div className="w-full h-full flex items-center justify-center bg-slate-700 text-white text-xs font-bold">
+              {adminName ? adminName.substring(0, 2).toUpperCase() : 'AD'}
+            </div>
           )}
-        </div>
-
-        {/* Teks Informasi */}
-        <div className="overflow-hidden">
-          <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
-          <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
         </div>
       </div>
     </aside>
