@@ -355,7 +355,7 @@ const handleConfirmUpload = async () => {
     onClick={() => {
       if (!avatarUrl) return;
       Swal.fire({
-        title: 'Foto Profil',
+        
         html: `
           <div 
             id="zoom-container"
@@ -436,9 +436,9 @@ const handleConfirmUpload = async () => {
           
         `,
         width: '450px',
-        showCloseButton: true,
+        
         showConfirmButton: false,
-        background: document.documentElement.classList.contains('dark') ? '#111720' : '#ffffff',
+        background: 'transparent',
         color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#171717',
       });
     }}
