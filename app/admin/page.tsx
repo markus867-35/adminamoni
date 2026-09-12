@@ -258,10 +258,7 @@ export default function Dashboard() {
 
 </div>
 
-{/* Footer Copyright */}
-<div className="text-center text-xs text-slate-500 dark:text-slate-400 pt-6 border-t border-slate-200 dark:border-slate-800 mt-10">
-  Copyright &copy; OneLiveGaming 2026
-</div>
+
     </div>
   );
 }
