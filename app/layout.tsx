@@ -47,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
               {/* Footer Copyright Otomatis di Semua Halaman Dashboard */}
               <div className="text-center text-xs text-slate-500 dark:text-slate-400 py-4 border-t border-slate-200 dark:border-slate-800 bg-[#f4f6f9] dark:bg-[#0b0f19]">
-                Copyright &copy; OneLiveGaming 2026
+                Copyright &copy; OneLiveGaming 2023
               </div>
             </div>
           </div>
