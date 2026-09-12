@@ -56,7 +56,8 @@ console.log("Nilai is_2fa_enabled saat ini:", data.is_2fa_enabled);
   };
 
   // Fungsi terpisah untuk menyelesaikan proses login & redirect
-  const finalizeLogin = async (data: { id: string; email: string; username: string }) => {
+  // Fungsi terpisah untuk menyelesaikan proses login & redirect
+  const finalizeLogin = async (data: { id: string; email: string; username: string; avatar_url?: string }) => {
     // Update waktu last_login ke database
     await supabase
       .from('admins')
@@ -67,6 +68,17 @@ console.log("Nilai is_2fa_enabled saat ini:", data.is_2fa_enabled);
     localStorage.setItem('admin_logged_in', 'true');
     localStorage.setItem('admin_email', data.email);
     localStorage.setItem('admin_name', data.username);
+
+// Di dalam file halaman login (finalizeLogin)
+const existingAdmins = JSON.parse(localStorage.getItem('active_admins') || '[]');
+const newAdmin = { username: data.username, avatar_url: data.avatar_url };
+
+// Masukkan ke array jika username tersebut belum ada di list aktif
+if (!existingAdmins.some((a: any) => a.username === newAdmin.username)) {
+  existingAdmins.push(newAdmin);
+  localStorage.setItem('active_admins', JSON.stringify(existingAdmins));
+}
+    // ----------------------------------------------
 
     Swal.fire({
       icon: 'success',

@@ -18,6 +18,7 @@ export default function Sidebar({ isOpen }) {
   const [adminAvatarUrl, setAdminAvatarUrl] = useState('');
   const [adminList, setAdminList] = useState([]); // <-- TAMBAHKAN INI
   const [allowedMenus, setAllowedMenus] = useState(null);
+  const [selectedAdminPopup, setSelectedAdminPopup] = useState(null);
 
   const [openMenus, setOpenMenus] = useState({
     dashboard: false,
@@ -42,7 +43,7 @@ export default function Sidebar({ isOpen }) {
 
 useEffect(() => {
     const fetchAdminData = async () => {
-      // 1. Ambil nama admin yang sedang aktif login untuk teks di sebelah kiri
+      // 1. Ambil nama admin yang sedang aktif login (untuk teks di sebelah kiri)
       const name = localStorage.getItem('admin_name');
       if (name) {
         setAdminName(name);
@@ -59,13 +60,17 @@ useEffect(() => {
         }
       }
 
-      // 2. Ambil SEMUA data admin dari tabel untuk ditampilkan berderet di kanan
-      const { data: allAdmins, error } = await supabase
-        .from('admins')
-        .select('username, avatar_url');
+      // 2. Ambil hanya admin yang berstatus Online (misalnya last_seen dalam 5 menit terakhir)
+      // Atau sesuaikan logika penanda online yang Anda gunakan di halaman Admin Master
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-      if (!error && allAdmins) {
-        setAdminList(allAdmins);
+      const { data: onlineAdmins, error } = await supabase
+        .from('admins')
+        .select('username, avatar_url, last_seen')
+        .gte('last_seen', fiveMinutesAgo); // Hanya ambil yang aktif dalam 5 menit terakhir
+
+      if (!error && onlineAdmins) {
+        setAdminList(onlineAdmins);
       }
     };
 
@@ -415,43 +420,86 @@ useEffect(() => {
       </div>
 
 {/* Bagian Bawah Sidebar */}
-      <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center justify-between">
-        {/* Teks Informasi di Kiri */}
-        <div className="overflow-hidden text-right flex-1 mr-3">
-          <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
-          <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
-        </div>
-
-        {/* Daftar Foto Profil Berderet di Kanan (Stack Effect) */}
-        <div className="flex items-center -space-x-2 overflow-hidden shrink-0 py-1">
-          {adminList && adminList.length > 0 ? (
-            adminList.map((admin, index) => (
-              <div 
-                key={index} 
-                className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shadow-md shrink-0" 
-                title={admin.username}
-              >
-                {admin.avatar_url ? (
-                  <Image 
-                    src={admin.avatar_url} 
-                    alt={admin.username} 
-                    fill 
-                    className="object-cover" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-700 text-white text-[10px] font-bold">
-                    {admin.username ? admin.username.substring(0, 2).toUpperCase() : 'AD'}
-                  </div>
-                )}
-              </div>
-            ))
+<div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center justify-between relative">
+  
+  {/* Pop-up Kotak Detail Kecil di Sidebar saat Ikon Diklik */}
+  {selectedAdminPopup && (
+    <div className="absolute bottom-full left-4 right-4 mb-3 bg-[#1c2630] border border-slate-700 rounded-lg p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider">Detail Admin Aktif</span>
+        <button 
+          onClick={() => setSelectedAdminPopup(null)}
+          className="text-slate-400 hover:text-white font-bold text-sm px-1 leading-none"
+        >
+          &times;
+        </button>
+      </div>
+      <div className="flex items-center space-x-3">
+        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-600 bg-slate-800 shrink-0">
+          {selectedAdminPopup.avatar_url ? (
+            <Image src={selectedAdminPopup.avatar_url} alt={selectedAdminPopup.username} fill className="object-cover" />
           ) : (
-            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 flex items-center justify-center">
-              <User className="w-5 h-5 text-slate-400" />
+            <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+              {selectedAdminPopup.username.substring(0, 2).toUpperCase()}
             </div>
           )}
         </div>
+        <div className="overflow-hidden">
+          <p className="text-white font-bold text-sm truncate">{selectedAdminPopup.username}</p>
+          <p className="text-[11px] text-slate-400 truncate">Status: <span className="text-emerald-400 font-semibold">Online</span></p>
+          <p className="text-[10px] text-slate-500 truncate">Terakhir aktif: Baru saja</p>
+        </div>
       </div>
+    </div>
+  )}
+
+  {/* Teks Informasi di Kiri */}
+  <div className="overflow-hidden text-right flex-1 mr-3">
+    <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
+    <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
+  </div>
+
+  {/* Daftar Foto Profil Berderet di Kanan */}
+  <div className="flex items-center -space-x-2 overflow-visible shrink-0 py-1">
+    {adminList && adminList.length > 0 ? (
+      adminList.map((admin, index) => (
+        <div key={index} className="relative group shrink-0">
+          {/* Ikon Profil dengan Handler onClick */}
+          <div 
+            onClick={() => setSelectedAdminPopup(admin)}
+            className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shadow-md cursor-pointer transition-transform hover:scale-110 hover:z-10" 
+            title={`Klik untuk lihat detail ${admin.username}`}
+          >
+            {admin.avatar_url ? (
+              <Image 
+                src={admin.avatar_url} 
+                alt={admin.username} 
+                fill 
+                className="object-cover" 
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-700 text-white text-[10px] font-bold">
+                {admin.username ? admin.username.substring(0, 2).toUpperCase() : 'AD'}
+              </div>
+            )}
+          </div>
+
+          {/* Tooltip Hover Bawaan */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-full -mt-1 hidden group-hover:flex flex-col items-center z-50 pointer-events-none">
+            <div className="w-2 h-2 bg-slate-900 rotate-45 -mb-1 border-t border-l border-slate-700"></div>
+            <span className="bg-slate-900 text-white text-[10px] font-semibold px-2 py-0.5 rounded shadow-lg whitespace-nowrap border border-slate-700">
+              {admin.username}
+            </span>
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 flex items-center justify-center">
+        <User className="w-5 h-5 text-slate-400" />
+      </div>
+    )}
+  </div>
+</div>
     </aside>
   );
 }
