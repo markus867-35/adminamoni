@@ -92,7 +92,7 @@ useEffect(() => {
         <div className="h-16 flex items-center px-6 bg-[#161f28] border-b border-slate-800 shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-slate-900">M</div>
-            <span className="text-white font-semibold tracking-wider text-sm">ADMIN PANEL</span>
+            <span className="text-white font-semibold tracking-wider text-sm">DASHBOARD MARKUS</span>
           </div>
         </div>
 
