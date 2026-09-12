@@ -168,10 +168,10 @@ const handleSettingsAdmin = (adm: any) => {
                                       </div>
                                       <p style="margin-top: 15px; font-size: 13px; color: #64748b;">Email: ${adm.email || '-'}</p>
                                     `,
-                                    showCloseButton: true,
+                                   
                                     showConfirmButton: false,
                                     width: '520px', // Diperbesar agar pas dengan gambar 280px
-                                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+                                    background: 'transparent',
                                     color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#1e293b',
                                   });
                                 }}

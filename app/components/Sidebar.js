@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Swal from 'sweetalert2';
 import { 
   LayoutDashboard, ArrowLeftRight, Users, Tag, ChevronDown, ChevronRight, Landmark, FileText, Dices, Database, Settings, Wrench, Server, ChevronUp, User
 } from 'lucide-react';
@@ -435,7 +436,29 @@ useEffect(() => {
         </button>
       </div>
       <div className="flex items-center space-x-3">
-        <div className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-600 bg-slate-800 shrink-0">
+        {/* Gambar Profil Kecil di Pop-up dengan Handler onClick untuk SweetAlert */}
+        <div 
+          onClick={() => {
+            Swal.fire({
+              title: `<span style="color: #fff; font-size: 18px;">${selectedAdminPopup.username}</span>`,
+              html: `
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 1px;">
+                  <div style="width: 300px; height: 300px; border-radius: 50%; overflow: hidden; border: 3px solid #334155; position: relative; background: #1e293b;">
+                    <img src="${selectedAdminPopup.avatar_url || ''}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
+                  </div>
+                  <div style="text-align: center; font-size: 13px; color: #94a3b8;">                   
+                  </div>
+                </div>
+              `,
+              background: 'transparent',
+              showConfirmButton: false,
+              width: '420px',
+              padding: '1.2rem',
+            });
+          }}
+          className="relative w-10 h-10 rounded-full overflow-hidden border border-slate-600 bg-slate-800 shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
+          title="Klik"
+        >
           {selectedAdminPopup.avatar_url ? (
             <Image src={selectedAdminPopup.avatar_url} alt={selectedAdminPopup.username} fill className="object-cover" />
           ) : (
@@ -444,6 +467,7 @@ useEffect(() => {
             </div>
           )}
         </div>
+
         <div className="overflow-hidden">
           <p className="text-white font-bold text-sm truncate">{selectedAdminPopup.username}</p>
           <p className="text-[11px] text-slate-400 truncate">Status: <span className="text-emerald-400 font-semibold">Online</span></p>
@@ -468,7 +492,7 @@ useEffect(() => {
           <div 
             onClick={() => setSelectedAdminPopup(admin)}
             className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shadow-md cursor-pointer transition-transform hover:scale-110 hover:z-10" 
-            title={`lihat detail ${admin.username}`}
+            title={`lihat ${admin.username}`}
           >
             {admin.avatar_url ? (
               <Image 
