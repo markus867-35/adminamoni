@@ -317,9 +317,7 @@ const handleSettingsAdmin = (adm: any) => {
         </div>
       </div>
 
-      <div className="text-center text-xs text-slate-500 dark:text-slate-400 py-4 border-t border-slate-200 dark:border-slate-800 mt-auto">
-        Copyright &copy; OneLiveGaming 2026
-      </div>
+
     </div>
   );
 }
