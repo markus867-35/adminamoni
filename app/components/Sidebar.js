@@ -468,7 +468,7 @@ useEffect(() => {
           <div 
             onClick={() => setSelectedAdminPopup(admin)}
             className="relative w-9 h-9 rounded-full overflow-hidden border-2 border-[#141b22] bg-slate-800 shadow-md cursor-pointer transition-transform hover:scale-110 hover:z-10" 
-            title={`Klik untuk lihat detail ${admin.username}`}
+            title={`lihat detail ${admin.username}`}
           >
             {admin.avatar_url ? (
               <Image 
