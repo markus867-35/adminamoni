@@ -43,7 +43,7 @@ function ChatContent() {
   // State indikator mengetik lawan jenis
   const [isTyping, setIsTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const typingChannelRef = useRef(null);
+  const typingChannelRef = useRef<RealtimeChannel | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
