@@ -16,8 +16,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Cek apakah halaman saat ini adalah halaman login
+  // Cek apakah halaman saat ini adalah halaman login atau halaman pesan
   const isLoginPage = pathname === '/login';
+  const isMessagePage = pathname === '/pesan'; // <-- Tambahan pengecekan halaman pesan
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -55,18 +56,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
               {/* ================================================= */}
               {/* TOMBOL / IKON PESAN MELAYANG (FLOATING CHAT BUTTON) */}
               {/* ================================================= */}
-              <button
-                onClick={() => {
-                  // Mengarahkan ke halaman pesan utama Anda
-                  router.push('/pesan'); 
-                }}
-                title="Buka Chat / Pesan"
-                className="fixed bottom-15 right-6 z-50 w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 cursor-pointer border-2 border-purple-400/40"
-              >
-                <MessageSquare className="w-5 h-5" />
-                {/* Opsional: Titik indikator hijau notifikasi online/pesan baru */}
-                <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#0b0f19] rounded-full"></span>
-              </button>
+              {/* Tombol hanya akan muncul jika TIDAK di halaman /login dan TIDAK di halaman /pesan */}
+              {!isMessagePage && (
+                <button
+                  onClick={() => {
+                    // Mengarahkan ke halaman pesan utama Anda
+                    router.push('/pesan'); 
+                  }}
+                  title="Buka Chat / Pesan"
+                  className="fixed bottom-15 right-6 z-50 w-12 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-2xl flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 cursor-pointer border-2 border-purple-400/40"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  {/* Opsional: Titik indikator hijau notifikasi online/pesan baru */}
+                  <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-[#0b0f19] rounded-full"></span>
+                </button>
+              )}
 
             </div>
           </div>

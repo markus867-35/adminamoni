@@ -29,7 +29,7 @@ function ChatContent() {
   const typingTimeoutRef = useRef(null);
   const typingChannelRef = useRef(null);
 
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const currentUserRef = useRef(currentUser);
   const activeContactRef = useRef(activeContact);
