@@ -332,11 +332,12 @@ const handleClearMessages = async () => {
 
     if (error) throw error;
 
-    // Kosongkan state pesan di frontend
+// Kosongkan state pesan di frontend
     setMessages([]);
     setShowDropdown(false);
   } catch (error) {
-    console.error('Gagal membersihkan pesan:', error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan';
+    console.error('Gagal membersihkan pesan:', errorMessage);
     alert('Gagal membersihkan pesan.');
   }
 };
