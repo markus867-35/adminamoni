@@ -146,9 +146,9 @@ function ChatContent() {
       }
     }
   }, [targetAdmin, availableContacts, currentUser]);
-
-  // Fungsi ambil pesan dari database + Realtime Subscription khusus pesan baru
-  async function fetchMessages(contactName) {
+  
+// Fungsi ambil pesan dari database + Realtime Subscription khusus pesan baru
+  async function fetchMessages(contactName?: string) {
     const targetName = contactName || activeContact?.name;
     if (!targetName) return;
     try {
@@ -162,7 +162,8 @@ function ChatContent() {
       if (error) throw error;
       if (data) setMessages(data);
     } catch (error) {
-      console.error('Gagal memuat pesan:', error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan';
+      console.error('Gagal memuat pesan:', errorMessage);
     } finally {
       setLoading(false);
     }
