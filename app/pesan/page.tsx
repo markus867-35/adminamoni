@@ -31,6 +31,12 @@ function ChatContent() {
   const targetAdmin = searchParams.get('to');
 
   const [currentUser, setCurrentUser] = useState('MIAKHALIFA'); 
+const fileInputRef = useRef<HTMLInputElement | null>(null);
+const [hoveredMessageId, setHoveredMessageId] = useState<any>(null);
+const [editingMessageId, setEditingMessageId] = useState<any>(null);
+const [editText, setEditText] = useState('');
+const [uploadingImage, setUploadingImage] = useState(false);
+const [selectedImage, setSelectedImage] = useState<string | null>(null); // Untuk modal preview
   const [showDropdown, setShowDropdown] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -367,6 +373,139 @@ const handleClearMessages = async () => {
   }
 };
 
+
+
+
+const isUserOnline = (lastSeenString: string) => {
+  if (!lastSeenString) return false;
+  
+  const lastSeenTime = new Date(lastSeenString).getTime();
+  const currentTime = new Date().getTime();
+  
+  // Selisih dalam milidetik (contoh: 5 menit = 5 * 60 * 1000 = 300000 ms)
+  const diffInMinutes = (currentTime - lastSeenTime) / (1000 * 60);
+  
+  // Jika terakhir terlihat kurang dari atau sama dengan 5 menit lalu, anggap ONLINE
+  return diffInMinutes <= 5;
+};
+
+
+
+
+
+const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file || !activeContact) return;
+
+  // Validasi ukuran (maksimal 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Ukuran gambar maksimal 5MB!');
+    return;
+  }
+
+  try {
+    setUploadingImage(true);
+    const fileExt = file.name.split('.').pop();
+    // PERBAIKI BARIS INI:
+const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `uploads/${fileName}`;
+
+    // Upload ke Supabase Storage (Pastikan Anda sudah membuat bucket bernama 'chat-images' di Supabase)
+    const { error: uploadError } = await supabase.storage
+      .from('chat-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    // Ambil Public URL dari file yang diupload
+    const { data: publicUrlData } = supabase.storage
+      .from('chat-images')
+      .getPublicUrl(filePath);
+
+    const imageUrl = publicUrlData.publicUrl;
+
+    // Kirim URL gambar sebagai pesan ke tabel 'messages'
+    const { data, error: messageError } = await supabase
+      .from('messages')
+      .insert([
+        {
+          sender: currentUser,
+          receiver: activeContact.name,
+          message: imageUrl,
+        },
+      ])
+      .select();
+
+    if (messageError) throw messageError;
+
+    if (data && data.length > 0) {
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === data[0].id);
+        if (exists) return prev;
+        return [...prev, data[0]];
+      });
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan';
+    console.error('Gagal mengunggah gambar:', errorMessage);
+    alert('Gagal mengunggah gambar. Pastikan bucket Supabase "chat-images" sudah dibuat.');
+  } finally {
+    setUploadingImage(false);
+    if (e.target) e.target.value = ''; // Reset input file
+  }
+};
+
+
+
+
+
+// Fungsi Hapus Pesan
+const handleDeleteMessage = async (msgId: any) => {
+  if (!window.confirm('Yakin ingin menghapus pesan ini?')) return;
+
+  try {
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', msgId);
+
+    if (error) throw error;
+
+    // Hapus dari state lokal frontend
+    setMessages((prev) => prev.filter((m) => m.id !== msgId));
+  } catch (error) {
+    console.error('Gagal menghapus pesan:', error);
+    alert('Gagal menghapus pesan.');
+  }
+};
+
+// Fungsi Simpan Hasil Edit Pesan
+const handleSaveEdit = async (msgId: any) => {
+  if (!editText.trim()) return;
+
+  try {
+    const { error } = await supabase
+      .from('messages')
+      .update({ message: editText.trim() })
+      .eq('id', msgId);
+
+    if (error) throw error;
+
+    // Perbarui state lokal frontend
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, message: editText.trim() } : m))
+    );
+
+    setEditingMessageId(null);
+    setEditText('');
+  } catch (error) {
+    console.error('Gagal mengedit pesan:', error);
+    alert('Gagal mengedit pesan.');
+  }
+};
+
+
+
   return (
     <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
       
@@ -410,16 +549,18 @@ const handleClearMessages = async () => {
                       : 'hover:bg-slate-100 dark:hover:bg-[#1e2230]/60'
                   }`}
                 >
-                  <div className="relative w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden text-slate-700 dark:text-slate-200">
-                    {contact.avatar ? (
-                      <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span>{contact.name.substring(0, 2).toUpperCase()}</span>
-                    )}
-                    {contact.online && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#161924] rounded-full"></span>
-                    )}
-                  </div>
+<div className="relative w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden text-slate-700 dark:text-slate-200">
+  {contact.avatar ? (
+    <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
+  ) : (
+    <span>{contact.name.substring(0, 2).toUpperCase()}</span>
+  )}
+
+  {/* TITIK HIJAU LEBIH JELAS & BERCAHAYA */}
+  {contact.online && (
+    <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-[#161924] rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+  )}
+</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{contact.name}</h4>
@@ -505,7 +646,26 @@ const handleClearMessages = async () => {
         </div>
       </header>
 
-           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 bg-slate-50 dark:bg-[#1b1e2b]">
+
+
+
+
+
+            {/* HEADER CHAT */}
+            <header className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1b1e2b]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+                  {activeContact.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200">{activeContact.name}</h3>
+                  <span className="text-[10px] text-emerald-500 font-medium">Aktif</span>
+                </div>
+              </div>
+            </header>
+
+            {/* DAFTAR PESAN + HOVER TITIK TIGA */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 bg-slate-50 dark:bg-[#1b1e2b]">
               <div className="text-center my-2">
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-200 dark:bg-[#161924] px-3 py-1 rounded-full shadow-sm">
                   Chat dengan {activeContact.name}
@@ -519,18 +679,101 @@ const handleClearMessages = async () => {
               ) : messages.length > 0 ? (
                 messages.map((msg, index) => {
                   const isMe = msg.sender.toLowerCase() === currentUser.toLowerCase();
+                  const msgId = msg.id || index;
+                  const isHovered = hoveredMessageId === msgId;
+                  const isEditing = editingMessageId === msgId;
+                  
+                  const isImageUrl = typeof msg.message === 'string' && (
+                    msg.message.match(/\.(jpeg|jpg|gif|png|webp)$/i) || 
+                    msg.message.includes('supabase.co/storage/v1/object/public')
+                  );
+
                   return (
-                    <div key={msg.id || index} className={`flex items-end gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
+                    <div 
+                      key={msgId} 
+                      className={`flex items-end gap-3 relative group ${isMe ? 'flex-row-reverse' : ''}`}
+                      onMouseEnter={() => setHoveredMessageId(msgId)}
+                      onMouseLeave={() => setHoveredMessageId(null)}
+                    >
                       <div className="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
                         {msg.sender.substring(0, 2).toUpperCase()}
                       </div>
-                      <div className={`max-w-[60%] space-y-1 ${isMe ? 'items-end' : ''}`}>
+
+                      <div className={`max-w-[60%] space-y-1 relative ${isMe ? 'items-end' : ''}`}>
+                        
+                        {/* TOMBOL TITIK TIGA SAAT HOVER */}
+                        {isHovered && (
+                          <div className={`absolute -top-3 ${isMe ? '-left-8' : '-right-8'} z-10`}>
+                            <div className="relative group/menu">
+                              <button className="w-6 h-6 bg-white dark:bg-[#161924] border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white shadow-sm text-xs font-bold cursor-pointer">
+                                ⋮
+                              </button>
+
+                              <div className={`absolute ${isMe ? 'right-0' : 'left-0'} top-7 hidden group-hover/menu:block bg-white dark:bg-[#161924] border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg py-1 min-w-[100px] z-20 text-xs`}>
+                                <button 
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(msg.message);
+                                    alert('Pesan disalin!');
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+                                >
+                                  Copy
+                                </button>
+
+                                {isMe && !isImageUrl && (
+                                  <button 
+                                    onClick={() => {
+                                      setEditingMessageId(msgId);
+                                      setEditText(msg.message);
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+
+                                {isMe && (
+                                  <button 
+                                    onClick={() => handleDeleteMessage(msg.id)}
+                                    className="w-full text-left px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 font-medium cursor-pointer"
+                                  >
+                                    Hapus
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className={`p-3.5 rounded-2xl text-xs md:text-sm leading-relaxed shadow-sm ${
                           isMe 
                             ? 'bg-[#7c3aed] text-white rounded-br-none' 
                             : 'bg-white text-slate-800 dark:bg-[#161924] dark:text-slate-200 rounded-bl-none font-medium border border-slate-200 dark:border-slate-800'
                         }`}>
-                          {msg.message}
+                          {isEditing ? (
+                            <div className="flex flex-col gap-2">
+                              <input 
+                                type="text" 
+                                value={editText} 
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="bg-white/20 dark:bg-black/30 text-white px-2 py-1 rounded text-xs focus:outline-none border border-white/30"
+                                autoFocus
+                              />
+                              <div className="flex justify-end gap-2 text-[10px]">
+                                <button onClick={() => setEditingMessageId(null)} className="hover:underline cursor-pointer">Batal</button>
+                                <button onClick={() => handleSaveEdit(msg.id)} className="bg-white text-purple-700 px-2 py-0.5 rounded font-bold cursor-pointer">Simpan</button>
+                              </div>
+                            </div>
+                          ) : isImageUrl ? (
+                            <img 
+                              src={msg.message} 
+                              alt="Attachment" 
+                              className="max-w-full max-h-60 rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => setSelectedImage(msg.message)}
+                            />
+                          ) : (
+                            msg.message
+                          )}
                         </div>
                         <span className={`text-[10px] text-slate-400 dark:text-slate-500 block px-1 ${isMe ? 'text-right' : ''}`}>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -546,7 +789,7 @@ const handleClearMessages = async () => {
                 </div>
               )}
 
-              {/* BUBBLE "SEDANG MENGETIK" DI DALAM CHAT */}
+              {/* BUBBLE "SEDANG MENGETIK" */}
               {isTyping && (
                 <div className="flex items-end gap-3">
                   <div className="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
@@ -564,21 +807,60 @@ const handleClearMessages = async () => {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* MODAL FULLSCREEN UNTUK GAMBAR */}
+            {selectedImage && (
+              <div 
+                className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-pointer"
+                onClick={() => setSelectedImage(null)}
+              >
+                <div className="relative max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                  <img 
+                    src={selectedImage} 
+                    alt="Full Preview" 
+                    className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" 
+                  />
+                  <button 
+                    className="absolute -top-10 right-0 text-white bg-slate-800/80 hover:bg-slate-700 px-3 py-1 rounded-full text-xs font-bold cursor-pointer"
+                    onClick={() => setSelectedImage(null)}
+                  >
+                    Tutup ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* FORM INPUT PESAN DI BAWAH */}
             <div className="p-4 bg-white border-t border-slate-200 dark:bg-[#1b1e2b] dark:border-slate-800/80 shrink-0">
               <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 dark:bg-[#161924] dark:border-slate-800 focus-within:border-purple-500 transition-colors shadow-lg">
-                <button type="button" className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
-                  <ImageIcon className="w-4 h-4" />
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImageUpload} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => fileInputRef.current?.click()} 
+                  disabled={uploadingImage}
+                  className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors cursor-pointer disabled:opacity-50"
+                  title="Kirim Gambar"
+                >
+                  {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin text-purple-500" /> : <ImageIcon className="w-4 h-4" />}
                 </button>
+
                 <button type="button" className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
                   <Smile className="w-4 h-4" />
                 </button>
+
                 <input 
                   type="text" 
-                  placeholder={`Kirim pesan ke ${activeContact.name} dengan ramah...` }
+                  placeholder={`Kirim pesan ke ${activeContact.name} dengan ramah...`}
                   value={newMessage}
                   onChange={handleInputChange} 
                   className="flex-1 bg-transparent text-xs md:text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                 />
+                
                 <button 
                   type="submit"
                   disabled={sending || !newMessage.trim()}
@@ -591,7 +873,7 @@ const handleClearMessages = async () => {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-xs">
-            Pilih admin di sebelah kiri untuk mulai chat.
+            Pilih kontak di sebelah kiri untuk mulai chat.
           </div>
         )}
       </main>
