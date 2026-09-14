@@ -252,7 +252,7 @@ function ChatContent() {
   }, [messages, isTyping]);
 
   // Fungsi saat user mengetik di input pesan
-  const handleInputChange = (e) => {
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
 
     // Kirim sinyal broadcast "sedang mengetik" ke lawan bicara
