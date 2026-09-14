@@ -9,14 +9,30 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+interface Contact {
+  id: any;
+  name: string;
+  preview: string;
+  avatar?: any;
+  online: boolean;
+}
+
+interface Message {
+  id: any;
+  sender: string;
+  receiver: string;
+  message: string;
+  created_at: string;
+}
+
 function ChatContent() {
   const searchParams = useSearchParams();
   const targetAdmin = searchParams.get('to');
 
   const [currentUser, setCurrentUser] = useState('MIAKHALIFA'); 
   const [showDropdown, setShowDropdown] = useState(false);
-  const [contacts, setContacts] = useState([]);
-  const [activeContact, setActiveContact] = useState(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [activeContact, setActiveContact] = useState<Contact | null>(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
