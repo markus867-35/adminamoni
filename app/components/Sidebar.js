@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
+import { MessageSquare } from 'lucide-react';
 import { 
   LayoutDashboard, ArrowLeftRight, Users, Tag, ChevronDown, ChevronRight, Landmark, FileText, Dices, Database, Settings, Wrench, Server, ChevronUp, User
 } from 'lucide-react';
@@ -15,6 +17,7 @@ const supabase = createClient(
 );
 
 export default function Sidebar({ isOpen }) {
+  const router = useRouter();
   const [adminName, setAdminName] = useState('Admin');
   const [adminAvatarUrl, setAdminAvatarUrl] = useState('');
   const [adminList, setAdminList] = useState([]); // <-- TAMBAHKAN INI
@@ -424,7 +427,7 @@ useEffect(() => {
 {/* Bagian Bawah Sidebar */}
 <div className="p-4 bg-[#141b22] text-xs text-slate-400 border-t border-slate-800 shrink-0 flex items-center justify-between relative">
   
-  {/* Pop-up Kotak Detail Kecil di Sidebar saat Ikon Diklik */}
+{/* Pop-up Kotak Detail Kecil di Sidebar saat Ikon Diklik */}
   {selectedAdminPopup && (
     <div className="absolute bottom-full left-4 right-4 mb-3 bg-[#1c2630] border border-slate-700 rounded-lg p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
       <div className="flex items-center justify-between mb-1.5">
@@ -447,7 +450,7 @@ useEffect(() => {
                   <div style="width: 300px; height: 300px; border-radius: 50%; overflow: hidden; border: 3px solid #334155; position: relative; background: #1e293b;">
                     <img src="${selectedAdminPopup.avatar_url || ''}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'" />
                   </div>
-                  <div style="text-align: center; font-size: 13px; color: #94a3b8;">                   
+                  <div style="text-align: center; font-size: 13px; color: #94a3b8;">                 
                   </div>
                 </div>
               `,
@@ -469,17 +472,25 @@ useEffect(() => {
           )}
         </div>
 
-        <div className="overflow-hidden">
+        <div className="overflow-hidden flex-1">
           <p className="text-white font-bold text-sm truncate">{selectedAdminPopup.username}</p>
-          <p className="text-[11px] text-slate-400 truncate">Status: <span className="text-emerald-400 font-semibold">Online</span></p>
-          <p className="text-[10px] text-slate-500 truncate">Terakhir aktif: Baru saja</p>
+          <div className="flex items-center justify-between mt-0.5">
+            <div>
+              <p className="text-[11px] text-slate-400 truncate">Status: <span className="text-emerald-400 font-semibold">Online</span></p>
+              <p className="text-[10px] text-slate-500 truncate">Terakhir aktif: Baru saja</p>
+            </div>
+
+
+          </div>
         </div>
       </div>
     </div>
   )}
 
+
   {/* Teks Informasi di Kiri */}
   <div className="overflow-hidden text-right flex-1 mr-3">
+    
     <p className="tracking-wider text-[13px] text-slate-400 leading-tight">Login sebagai:</p>
     <p className="font-bold text-[15px] text-white tracking-wide mt-0.5 truncate">{adminName}</p>
   </div>
