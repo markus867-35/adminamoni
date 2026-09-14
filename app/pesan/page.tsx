@@ -51,6 +51,7 @@ const localVideoRef = useRef<HTMLVideoElement | null>(null);
 const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 const localStreamRef = useRef<MediaStream | null>(null);
+const [showMobileChat, setShowMobileChat] = useState(false);
   
   // State indikator mengetik lawan jenis
   const [isTyping, setIsTyping] = useState(false);
@@ -588,10 +589,12 @@ const endCall = () => {
 };
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
+    <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans md:rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
       
 {/* SIDEBAR */}
-      <aside className="w-80 bg-white border-r border-slate-200 dark:bg-[#161924] dark:border-slate-800/80 flex flex-col shrink-0">
+      <aside className={`w-full md:w-80 bg-white border-r border-slate-200 dark:bg-[#161924] dark:border-slate-800/80 flex flex-col shrink-0 ${
+        showMobileChat ? 'hidden md:flex' : 'flex'
+      }`}>
         <div className="p-4 border-b border-slate-200 dark:border-slate-800/60">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-3" />
@@ -623,6 +626,7 @@ const endCall = () => {
                       prevContacts.map(c => c.name === contact.name ? { ...c, unreadCount: 0 } : c)
                     );
                     setActiveContact(contact);
+                    setShowMobileChat(true);
                   }}
                   className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
                     isActive 
@@ -685,29 +689,43 @@ const endCall = () => {
       </aside>
 
 {/* RUANG CHAT UTAMA */}
-<main className="flex-1 flex flex-col bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 min-w-0">
+<main className={`flex-1 flex-col bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 min-w-0 ${
+  showMobileChat ? 'flex' : 'hidden md:flex'
+}`}>
   {activeContact ? (
     <>
-      <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 dark:bg-[#1b1e2b] dark:border-slate-800/60">
-        <div>
-          <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">{activeContact.name}</h2>
-          {isTyping ? (
-            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold animate-pulse">
-              ✍️ {activeContact.name} sedang mengetik...
-            </p>
-          ) : (
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">● Status: Online (Admin)</p>
-          )}
+      <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-8 flex items-center justify-between shrink-0 dark:bg-[#1b1e2b] dark:border-slate-800/60">
+        <div className="flex items-center gap-3">
+          
+          {/* TOMBOL KEMBALI KHUSUS MOBILE */}
+          <button 
+            onClick={() => setShowMobileChat(false)}
+            className="md:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+            title="Kembali ke Daftar Pesan"
+          >
+            ←
+          </button>
+
+          <div>
+            <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 truncate max-w-[150px] md:max-w-none">{activeContact.name}</h2>
+            {isTyping ? (
+              <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold animate-pulse">
+                ✍️ {activeContact.name} sedang mengetik...
+              </p>
+            ) : (
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">● Status: Online (Admin)</p>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
           <button 
-  onClick={startCall} // <-- Sambungkan ke fungsi WebRTC
-  className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
-  title="Video Call"
->
-  📹
-</button>
+            onClick={startCall} // <-- Sambungkan ke fungsi WebRTC
+            className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            title="Video Call"
+          >
+            📹
+          </button>
           <button className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">📹</button>
           
           {/* Dropdown Menu Container */}
