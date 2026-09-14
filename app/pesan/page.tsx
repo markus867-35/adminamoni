@@ -46,6 +46,11 @@ const [selectedImage, setSelectedImage] = useState<string | null>(null); // Untu
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCallActive, setIsCallActive] = useState(false);
+const localVideoRef = useRef<HTMLVideoElement | null>(null);
+const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+const localStreamRef = useRef<MediaStream | null>(null);
   
   // State indikator mengetik lawan jenis
   const [isTyping, setIsTyping] = useState(false);
@@ -506,6 +511,63 @@ const handleSaveEdit = async (msgId: any) => {
 
 
 
+
+// Fungsi untuk memulai panggilan video (WebRTC Native)
+const startCall = async () => {
+  try {
+    setIsCallActive(true);
+
+    // 1. Minta akses kamera dan mikrofon
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStreamRef.current = stream;
+    
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+
+    // 2. Inisialisasi WebRTC Peer Connection dengan STUN Server publik gratis dari Google
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+    peerConnectionRef.current = pc;
+
+    // Masukkan track lokal (kamera/audio) ke sambungan
+    stream.getTracks().forEach(track => {
+      pc.addTrack(track, stream);
+    });
+
+    // Tangkap video dari lawan bicara saat terhubung
+    pc.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    // Buat penawaran koneksi (Offer)
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    // Catatan: Di sini Anda bisa mengirim 'offer' lewat Supabase Realtime agar diterima oleh activeContact
+  } catch (error) {
+    console.error("Gagal mengakses kamera/mikrofon:", error);
+    alert("Tidak dapat mengakses kamera atau mikrofon. Pastikan izin browser sudah aktif.");
+    setIsCallActive(false);
+  }
+};
+
+// Fungsi untuk mengakhiri panggilan
+const endCall = () => {
+  if (localStreamRef.current) {
+    localStreamRef.current.getTracks().forEach(track => track.stop());
+  }
+  if (peerConnectionRef.current) {
+    peerConnectionRef.current.close();
+    peerConnectionRef.current = null;
+  }
+  setIsCallActive(false);
+};
+
+
   return (
     <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
       
@@ -620,7 +682,13 @@ const handleSaveEdit = async (msgId: any) => {
         </div>
         
         <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
-          <button className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">📞</button>
+          <button 
+  onClick={startCall} // <-- Sambungkan ke fungsi WebRTC
+  className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+  title="Video Call"
+>
+  📹
+</button>
           <button className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">📹</button>
           
           {/* Dropdown Menu Container */}
@@ -648,7 +716,42 @@ const handleSaveEdit = async (msgId: any) => {
 
 
 
+{/* MODAL VIDEO CALL */}
+{isCallActive && (
+  <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4">
+    <div className="relative w-full max-w-4xl bg-[#161924] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl p-4 flex flex-col items-center gap-4">
+      <div className="text-white text-xs font-semibold">
+        Sedang Berpanggilan dengan {activeContact.name}
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        {/* Video Lawan Bicara */}
+        <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <span className="absolute bottom-3 left-3 text-[10px] bg-black/60 text-white px-2 py-1 rounded">
+            {activeContact.name}
+          </span>
+        </div>
+
+        {/* Video Diri Sendiri */}
+        <div className="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+          <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+          <span className="absolute bottom-3 left-3 text-[10px] bg-black/60 text-white px-2 py-1 rounded">
+            Saya (Anda)
+          </span>
+        </div>
+      </div>
+
+      {/* Tombol Tutup / Akhiri Panggilan */}
+      <button 
+        onClick={endCall}
+        className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all cursor-pointer shadow-lg mt-2"
+      >
+        Akhiri Panggilan ✕
+      </button>
+    </div>
+  </div>
+)}
 
 
             {/* HEADER CHAT */}
