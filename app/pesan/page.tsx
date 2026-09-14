@@ -33,7 +33,7 @@ function ChatContent() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingContacts, setLoadingContacts] = useState(true);
@@ -146,7 +146,7 @@ function ChatContent() {
       }
     }
   }, [targetAdmin, availableContacts, currentUser]);
-  
+
 // Fungsi ambil pesan dari database + Realtime Subscription khusus pesan baru
   async function fetchMessages(contactName?: string) {
     const targetName = contactName || activeContact?.name;
