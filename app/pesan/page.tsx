@@ -297,8 +297,9 @@ const handleSendMessage = async (e: React.FormEvent) => {
           return [...prev, data[0]];
         });
       }
-    } catch (error) {
-      console.error('Gagal mengirim pesan:', error.message);
+} catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan';
+      console.error('Gagal mengirim pesan:', errorMessage);
       alert('Gagal mengirim pesan.');
     } finally {
       setSending(false);
