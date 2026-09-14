@@ -513,44 +513,43 @@ const handleSaveEdit = async (msgId: any) => {
 
 
 
-const startCall = async () => {
+const startCall = async () => { // <-- Pastikan ada kata "async" di sini
   try {
     setIsCallActive(true);
 
-    // Pastikan browser mendukung mediaDevices
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert("Browser Anda tidak Mendukung akses kamera.");
       return;
     }
 
-    // 1. Minta izin kamera dan mikrofon
     const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { width: 1280, height: 720 }, 
+      video: { width: { ideal: 1280 }, height: { ideal: 720 } }, 
       audio: true 
     });
     
     localStreamRef.current = stream;
-    
-    // 2. Tempel stream ke elemen video lokal secara langsung
-    setTimeout(() => {
+
+    // Tunggu modal video muncul ke DOM sebentar, lalu pasang stream
+    setTimeout(async () => {
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
-        localVideoRef.current.play().catch(e => console.log("Play error:", e));
+        try {
+          await localVideoRef.current.play(); // <-- await di sini sah karena di dalam fungsi async
+        } catch (e) {
+          console.log("Play error:", e);
+        }
       }
     }, 100);
 
-    // 3. Inisialisasi WebRTC Peer Connection
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
     peerConnectionRef.current = pc;
 
-    // Masukkan track lokal ke sambungan
     stream.getTracks().forEach(track => {
       pc.addTrack(track, stream);
     });
 
-    // Tangkap video lawan bicara
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
