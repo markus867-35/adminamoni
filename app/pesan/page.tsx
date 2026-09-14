@@ -512,59 +512,59 @@ const handleSaveEdit = async (msgId: any) => {
 
 
 
-// Fungsi untuk memulai panggilan video (WebRTC Native)
 const startCall = async () => {
   try {
     setIsCallActive(true);
 
-    // 1. Minta akses kamera dan mikrofon
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localStreamRef.current = stream;
-    
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = stream;
+    // Pastikan browser mendukung mediaDevices
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert("Browser Anda tidak Mendukung akses kamera.");
+      return;
     }
 
-    // 2. Inisialisasi WebRTC Peer Connection dengan STUN Server publik gratis dari Google
+    // 1. Minta izin kamera dan mikrofon
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { width: 1280, height: 720 }, 
+      audio: true 
+    });
+    
+    localStreamRef.current = stream;
+    
+    // 2. Tempel stream ke elemen video lokal secara langsung
+    setTimeout(() => {
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+        localVideoRef.current.play().catch(e => console.log("Play error:", e));
+      }
+    }, 100);
+
+    // 3. Inisialisasi WebRTC Peer Connection
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     });
     peerConnectionRef.current = pc;
 
-    // Masukkan track lokal (kamera/audio) ke sambungan
+    // Masukkan track lokal ke sambungan
     stream.getTracks().forEach(track => {
       pc.addTrack(track, stream);
     });
 
-    // Tangkap video dari lawan bicara saat terhubung
+    // Tangkap video lawan bicara
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
+        remoteVideoRef.current.play().catch(e => console.log("Remote play error:", e));
       }
     };
 
-    // Buat penawaran koneksi (Offer)
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
-    // Catatan: Di sini Anda bisa mengirim 'offer' lewat Supabase Realtime agar diterima oleh activeContact
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gagal mengakses kamera/mikrofon:", error);
-    alert("Tidak dapat mengakses kamera atau mikrofon. Pastikan izin browser sudah aktif.");
+    alert("Gagal membuka kamera: " + (error.message || error));
     setIsCallActive(false);
   }
-};
-
-// Fungsi untuk mengakhiri panggilan
-const endCall = () => {
-  if (localStreamRef.current) {
-    localStreamRef.current.getTracks().forEach(track => track.stop());
-  }
-  if (peerConnectionRef.current) {
-    peerConnectionRef.current.close();
-    peerConnectionRef.current = null;
-  }
-  setIsCallActive(false);
 };
 
 
