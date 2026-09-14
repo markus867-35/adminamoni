@@ -111,7 +111,8 @@ function ChatContent() {
           setContacts(formattedContacts);
         }
       } catch (error) {
-        console.error('Gagal mengambil daftar admin:', error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan';
+        console.error('Gagal mengambil daftar admin:', errorMessage);
       } finally {
         setLoadingContacts(false);
       }
