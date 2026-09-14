@@ -268,7 +268,7 @@ function ChatContent() {
     }
   };
 
-  const handleSendMessage = async (e) => {
+const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeContact) return;
 
