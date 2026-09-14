@@ -15,6 +15,7 @@ interface Contact {
   preview: string;
   avatar?: any;
   online: boolean;
+  unreadCount?: number; // Tambahkan ini
 }
 
 interface Message {
@@ -107,6 +108,7 @@ function ChatContent() {
             preview: 'Klik untuk mulai pesan...',
             avatar: admin.avatar_url,
             online: true,
+            unreadCount: 0,
           }));
           setContacts(formattedContacts);
         }
@@ -176,7 +178,7 @@ function ChatContent() {
     }
   }, [activeContact, currentUser]);
 
-  // SUPABASE REALTIME (Pesan Masuk + Typing Indicator Broadcast)
+ // SUPABASE REALTIME (Pesan Masuk + Typing Indicator Broadcast)
   useEffect(() => {
     // Buat channel realtime gabungan unik
     const channelName = 'chat-room-sync';
@@ -195,19 +197,42 @@ function ChatContent() {
         const currUser = currentUserRef.current;
         const actContact = activeContactRef.current;
 
-        if (actContact && currUser) {
-          const isRelevant = 
-            (newMsg.sender.toLowerCase() === currUser.toLowerCase() && newMsg.receiver.toLowerCase() === actContact.name.toLowerCase()) ||
-            (newMsg.sender.toLowerCase() === actContact.name.toLowerCase() && newMsg.receiver.toLowerCase() === currUser.toLowerCase());
+        if (currUser) {
+          // Cek apakah pesan ini relevan dengan chat yang SEDANG DIBUKA
+          if (actContact) {
+            const isRelevant = 
+              (newMsg.sender.toLowerCase() === currUser.toLowerCase() && newMsg.receiver.toLowerCase() === actContact.name.toLowerCase()) ||
+              (newMsg.sender.toLowerCase() === actContact.name.toLowerCase() && newMsg.receiver.toLowerCase() === currUser.toLowerCase());
 
-          if (isRelevant) {
-            setMessages((prev) => {
-              const exists = prev.some((m) => m.id === newMsg.id);
-              if (exists) return prev;
-              return [...prev, newMsg];
-            });
-            // Hilangkan status mengetik jika pesan sudah masuk
-            setIsTyping(false);
+            if (isRelevant) {
+              setMessages((prev) => {
+                const exists = prev.some((m) => m.id === newMsg.id);
+                if (exists) return prev;
+                return [...prev, newMsg];
+              });
+              // Hilangkan status mengetik jika pesan sudah masuk
+              setIsTyping(false);
+            }
+          }
+
+          // CEK PESAN MASUK UNTUK SEMUA KONTAK (Memperbarui Preview & Unread Count Badge)
+          if (newMsg.receiver.toLowerCase() === currUser.toLowerCase()) {
+            setContacts((prevContacts) =>
+              prevContacts.map((contact) => {
+                // Apakah pengirim pesan ini sama dengan kontak dalam list?
+                if (contact.name.toLowerCase() === newMsg.sender.toLowerCase()) {
+                  const isCurrentChatOpen = actContact && actContact.name.toLowerCase() === newMsg.sender.toLowerCase();
+                  
+                  return {
+                    ...contact,
+                    preview: newMsg.message, // Update teks preview terakhir
+                    // Jika chat sedang dibuka, unreadCount tetap 0. Jika tidak, tambah 1.
+                    unreadCount: isCurrentChatOpen ? 0 : (contact.unreadCount || 0) + 1,
+                  };
+                }
+                return contact;
+              })
+            );
           }
         }
       }
@@ -343,24 +368,24 @@ const handleClearMessages = async () => {
 };
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] bg-[#1b1e2b] text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
+    <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
       
-      {/* SIDEBAR */}
-      <aside className="w-80 bg-[#161924] border-r border-slate-800/80 flex flex-col shrink-0">
-        <div className="p-4 border-b border-slate-800/60">
+{/* SIDEBAR */}
+      <aside className="w-80 bg-white border-r border-slate-200 dark:bg-[#161924] dark:border-slate-800/80 flex flex-col shrink-0">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800/60">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-3" />
             <input 
               type="text"
               placeholder="Cari admin terdaftar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#1e2230] border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full bg-slate-100 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-800 placeholder-slate-400 dark:bg-[#1e2230] dark:border-slate-800 dark:text-slate-200 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+<div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           <p className="text-[10px] font-bold text-slate-500 tracking-wider px-3 py-1 uppercase">Daftar Admin Aktif Lainnya</p>
           
           {loadingContacts ? (
@@ -373,27 +398,43 @@ const handleClearMessages = async () => {
               return (
                 <div 
                   key={contact.id}
-                  onClick={() => setActiveContact(contact)}
+                  onClick={() => {
+                    setContacts(prevContacts =>
+                      prevContacts.map(c => c.name === contact.name ? { ...c, unreadCount: 0 } : c)
+                    );
+                    setActiveContact(contact);
+                  }}
                   className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${
-                    isActive ? 'bg-[#25293d] border-l-4 border-purple-600 shadow-sm' : 'hover:bg-[#1e2230]/60'
+                    isActive 
+                      ? 'bg-slate-200 border-l-4 border-purple-600 shadow-sm dark:bg-[#25293d]' 
+                      : 'hover:bg-slate-100 dark:hover:bg-[#1e2230]/60'
                   }`}
                 >
-                  <div className="relative w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                  <div className="relative w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden text-slate-700 dark:text-slate-200">
                     {contact.avatar ? (
                       <img src={contact.avatar} alt={contact.name} className="w-full h-full object-cover" />
                     ) : (
                       <span>{contact.name.substring(0, 2).toUpperCase()}</span>
                     )}
                     {contact.online && (
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#161924] rounded-full"></span>
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-[#161924] rounded-full"></span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-slate-200 truncate">{contact.name}</h4>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{contact.name}</h4>
                     </div>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">{contact.preview}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{contact.preview}</p>
                   </div>
+
+                  {/* Badge Unread Count */}
+                  {contact.unreadCount && contact.unreadCount > 0 ? (
+                    <div className="flex flex-col items-end shrink-0 ml-2">
+                      <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {contact.unreadCount}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               );
             })
@@ -404,69 +445,69 @@ const handleClearMessages = async () => {
           )}
         </div>
 
-        <div className="p-3 bg-[#13151f] border-t border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs text-white">
-              {currentUser.substring(0, 2).toUpperCase()}
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border border-[#13151f] rounded-full"></span>
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-200 block truncate">Login: {currentUser}</span>
-              <span className="text-[10px] text-emerald-400 font-medium">Online</span>
-            </div>
-          </div>
-          <button className="text-slate-500 hover:text-slate-300 transition-colors">
-            <Settings className="w-4 h-4" />
-          </button>
-        </div>
-      </aside>
-
-      {/* RUANG CHAT UTAMA */}
-      <main className="flex-1 flex flex-col bg-[#1b1e2b] min-w-0">
-        {activeContact ? (
-          <>
-            <header className="h-16 bg-[#1b1e2b] border-b border-slate-800/60 px-8 flex items-center justify-between shrink-0">
-  <div>
-    <h2 className="font-bold text-sm text-slate-100">{activeContact.name}</h2>
-    {isTyping ? (
-      <p className="text-[10px] text-purple-400 font-semibold animate-pulse">
-        ✍️ {activeContact.name} sedang mengetik...
-      </p>
-    ) : (
-      <p className="text-[10px] text-emerald-400 font-medium">● Status: Online (Admin)</p>
-    )}
-  </div>
-  
-  <div className="flex items-center gap-4 text-slate-400">
-    <button className="hover:text-slate-200 transition-colors cursor-pointer">📞</button>
-    <button className="hover:text-slate-200 transition-colors cursor-pointer">📹</button>
-    
-    {/* Dropdown Menu Container */}
-    <div className="relative">
-      <button 
-        onClick={() => setShowDropdown(!showDropdown)}
-        className="hover:text-slate-200 transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-800/50"
-      >
-        •••
-      </button>
-
-      {showDropdown && (
-        <div className="absolute right-0 mt-2 w-44 bg-[#161924] border border-slate-800 rounded-xl shadow-2xl py-1.5 z-50">
-          <button
-            onClick={handleClearMessages}
-            className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-[#1e2230] transition-colors flex items-center gap-2 font-medium cursor-pointer"
-          >
-            🗑️ Bersihkan Pesan
-          </button>
-        </div>
-      )}
+<div className="p-3 bg-slate-50 border-t border-slate-200 dark:bg-[#13151f] dark:border-slate-800/80 flex items-center justify-between">
+  <div className="flex items-center gap-2.5">
+    <div className="relative w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs text-white">
+      {currentUser.substring(0, 2).toUpperCase()}
+      <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border border-white dark:border-[#13151f] rounded-full"></span>
+    </div>
+    <div className="min-w-0">
+      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">Login: {currentUser}</span>
+      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Online</span>
     </div>
   </div>
-</header>
+  <button className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
+    <Settings className="w-4 h-4" />
+  </button>
+</div>
+      </aside>
 
-            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+{/* RUANG CHAT UTAMA */}
+<main className="flex-1 flex flex-col bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 min-w-0">
+  {activeContact ? (
+    <>
+      <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 dark:bg-[#1b1e2b] dark:border-slate-800/60">
+        <div>
+          <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">{activeContact.name}</h2>
+          {isTyping ? (
+            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold animate-pulse">
+              ✍️ {activeContact.name} sedang mengetik...
+            </p>
+          ) : (
+            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">● Status: Online (Admin)</p>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+          <button className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">📞</button>
+          <button className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">📹</button>
+          
+          {/* Dropdown Menu Container */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/50"
+            >
+              •••
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 z-50 dark:bg-[#161924] dark:border-slate-800">
+                <button
+                  onClick={handleClearMessages}
+                  className="w-full text-left px-4 py-2 text-xs text-red-500 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-[#1e2230] transition-colors flex items-center gap-2 font-medium cursor-pointer"
+                >
+                  🗑️ Bersihkan Pesan
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6 bg-slate-50 dark:bg-[#1b1e2b]">
               <div className="text-center my-2">
-                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest bg-[#161924] px-3 py-1 rounded-full">
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-200 dark:bg-[#161924] px-3 py-1 rounded-full shadow-sm">
                   Chat dengan {activeContact.name}
                 </span>
               </div>
@@ -480,18 +521,18 @@ const handleClearMessages = async () => {
                   const isMe = msg.sender.toLowerCase() === currentUser.toLowerCase();
                   return (
                     <div key={msg.id || index} className={`flex items-end gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-                      <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
                         {msg.sender.substring(0, 2).toUpperCase()}
                       </div>
                       <div className={`max-w-[60%] space-y-1 ${isMe ? 'items-end' : ''}`}>
                         <div className={`p-3.5 rounded-2xl text-xs md:text-sm leading-relaxed shadow-sm ${
                           isMe 
                             ? 'bg-[#7c3aed] text-white rounded-br-none' 
-                            : 'bg-white text-slate-800 rounded-bl-none font-medium'
+                            : 'bg-white text-slate-800 dark:bg-[#161924] dark:text-slate-200 rounded-bl-none font-medium border border-slate-200 dark:border-slate-800'
                         }`}>
                           {msg.message}
                         </div>
-                        <span className={`text-[10px] text-slate-500 block px-1 ${isMe ? 'text-right' : ''}`}>
+                        <span className={`text-[10px] text-slate-400 dark:text-slate-500 block px-1 ${isMe ? 'text-right' : ''}`}>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -499,23 +540,23 @@ const handleClearMessages = async () => {
                   );
                 })
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-500 text-center space-y-1">
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 text-center space-y-1">
                   <p className="text-xs">Belum ada pesan dengan {activeContact.name}.</p>
-                  <p className="text-[11px] text-slate-600">Kirim pesan di bawah untuk memulai percakapan.</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-600">Kirim pesan di bawah untuk memulai percakapan.</p>
                 </div>
               )}
 
               {/* BUBBLE "SEDANG MENGETIK" DI DALAM CHAT */}
               {isTyping && (
                 <div className="flex items-end gap-3">
-                  <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shrink-0">
                     {activeContact.name.substring(0, 2).toUpperCase()}
                   </div>
-                  <div className="bg-white text-slate-800 px-4 py-2.5 rounded-2xl rounded-bl-none text-xs font-medium shadow-sm flex items-center gap-1.5">
+                  <div className="bg-white dark:bg-[#161924] border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-2xl rounded-bl-none text-xs font-medium shadow-sm flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce"></span>
                     <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:0.2s]"></span>
                     <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                    <span className="text-[11px] text-slate-500 ml-1">{activeContact.name} sedang mengetik...</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-1">{activeContact.name} sedang mengetik...</span>
                   </div>
                 </div>
               )}
@@ -523,20 +564,20 @@ const handleClearMessages = async () => {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 bg-[#1b1e2b] shrink-0">
-              <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto flex items-center gap-3 bg-[#161924] border border-slate-800 rounded-2xl px-4 py-3 focus-within:border-purple-500 transition-colors shadow-lg">
-                <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors">
+            <div className="p-4 bg-white border-t border-slate-200 dark:bg-[#1b1e2b] dark:border-slate-800/80 shrink-0">
+              <form onSubmit={handleSendMessage} className="max-w-4xl mx-auto flex items-center gap-3 bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 dark:bg-[#161924] dark:border-slate-800 focus-within:border-purple-500 transition-colors shadow-lg">
+                <button type="button" className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
                   <ImageIcon className="w-4 h-4" />
                 </button>
-                <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors">
+                <button type="button" className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
                   <Smile className="w-4 h-4" />
                 </button>
                 <input 
                   type="text" 
                   placeholder={`Kirim pesan ke ${activeContact.name} dengan ramah...` }
                   value={newMessage}
-                  onChange={handleInputChange} // Menggunakan handler khusus untuk mengirim sinyal mengetik
-                  className="flex-1 bg-transparent text-xs md:text-sm text-slate-200 placeholder-slate-500 focus:outline-none"
+                  onChange={handleInputChange} 
+                  className="flex-1 bg-transparent text-xs md:text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
                 />
                 <button 
                   type="submit"
@@ -549,7 +590,7 @@ const handleClearMessages = async () => {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-500 text-xs">
+          <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-xs">
             Pilih admin di sebelah kiri untuk mulai chat.
           </div>
         )}
@@ -560,7 +601,7 @@ const handleClearMessages = async () => {
 
 export default function AdminChatPage() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-[#1b1e2b] text-white">Memuat halaman pesan...</div>}>
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-white dark:bg-[#1b1e2b] text-slate-800 dark:text-white">Memuat halaman pesan...</div>}>
       <ChatContent />
     </Suspense>
   );
