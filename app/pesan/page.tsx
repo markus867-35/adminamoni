@@ -568,6 +568,25 @@ const startCall = async () => {
 };
 
 
+
+// Fungsi untuk mengakhiri panggilan
+const endCall = () => {
+  // Matikan semua track kamera dan mikrofon lokal
+  if (localStreamRef.current) {
+    localStreamRef.current.getTracks().forEach(track => track.stop());
+    localStreamRef.current = null;
+  }
+  
+  // Tutup koneksi WebRTC PeerConnection
+  if (peerConnectionRef.current) {
+    peerConnectionRef.current.close();
+    peerConnectionRef.current = null;
+  }
+
+  // Tutup tampilan modal video call
+  setIsCallActive(false);
+};
+
   return (
     <div className="flex h-[calc(100vh-5rem)] bg-white text-slate-900 dark:bg-[#1b1e2b] dark:text-slate-100 font-sans rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
       
